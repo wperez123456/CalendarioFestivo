@@ -1,0 +1,207 @@
+:root {
+    --bg-color: #f8f8fa;
+    --text-main: #111111;
+    --text-muted: #a0a0a0;
+    --grid-line: #e0e0e0;
+    --accent: #42a5f5; /* Azul moderno */
+    
+    /* Colores Festivos */
+    --h-nac: #ffdddd; 
+    --h-loc: #ddedff; 
+}
+
+body {
+    font-family: 'Comic Sans MS', sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-main);
+    margin: 0; padding: 0;
+    height: 100vh;
+    display: flex; flex-direction: column;
+    overflow: hidden;
+}
+
+/* --- Tipografía y Estructura --- */
+header { 
+    padding: 20px; 
+    background: var(--bg-color); 
+    border-bottom: 1px solid var(--grid-line); 
+    display: flex; justify-content: space-between; align-items: center; z-index: 10; 
+}
+
+.month-title { 
+    font-size: 24px; 
+    font-weight: 400; /* Brush Script no usa bold */
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.nav-controls button, select { 
+    background: #ededed; 
+    border: none; 
+    padding: 10px 14px; 
+    border-radius: 12px; 
+    font-weight: 400; 
+    font-size: 14px; 
+    margin-left: 5px; 
+    cursor: pointer;
+    color: var(--text-main);
+    font-family: 'Montserrat', sans-serif; /* Controles legibles */
+}
+
+/* Días de la semana */
+.weekdays { 
+    display: grid; grid-template-columns: repeat(7, 1fr);
+    text-align: center; font-size: 12px; font-weight: 400; 
+    color: var(--text-muted); padding: 10px 0; background: white;
+    letter-spacing: 0.5px;
+}
+.weekdays div:last-child { color: var(--accent); }
+
+/* --- Grid del Calendario --- */
+.scroll-container { flex-grow: 1; overflow-y: auto; padding-bottom: 80px; }
+.calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); border-top: 1px solid var(--grid-line); }
+
+.day-cell { 
+    min-height: 100px;
+    border-bottom: 1px solid var(--grid-line); border-right: 1px solid var(--grid-line);
+    padding: 8px; position: relative; cursor: pointer;
+    display: flex; flex-direction: column; justify-content: flex-start;
+}
+.day-cell:nth-child(7n) { border-right: none; }
+
+.day-number { 
+    font-size: 18px; 
+    font-weight: 400;
+    width: 32px; height: 32px;
+    display: flex; align-items: center; justify-content: center; 
+    border-radius: 8px; 
+    align-self: flex-start;
+    font-family: 'Montserrat', sans-serif; /* Números legibles */
+}
+.day-cell.today .day-number { 
+    background-color: var(--accent); 
+    color: #fff;
+}
+
+/* --- ICONO FESTIVO --- */
+.day-cell.is-holiday .day-number { visibility: hidden; }
+
+.holiday-visual {
+    font-size: 50px; 
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    filter: drop-shadow(2px 2px 2px rgba(0,0,0,0.1)); 
+    opacity: 0.9;
+}
+
+.is-holiday .holiday-visual-img {
+    display: block;
+    width: 50px; height: 50px;
+    background-image: url('image/3906205.jpg'); /* Ruta relativa al archivo CSS */
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+/* --- MODAL DETALLE --- */
+.modal {
+    display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.4); z-index: 100; justify-content: center; align-items: flex-end;
+}
+.modal.active { display: flex; }
+.modal-content {
+    background: white; width: 100%; max-width: 400px; 
+    border-top-left-radius: 25px; border-top-right-radius: 25px;
+    padding: 30px 25px; box-shadow: 0 -10px 40px rgba(0,0,0,0.2); animation: slideUp 0.3s ease-out;
+}
+
+.modal-header { text-align: center; margin-bottom: 20px; }
+.modal-date { font-size: 18px; font-weight: 400; }
+.modal-desc { 
+    font-size: 16px; 
+    color: var(--text-main); 
+    margin-top: 5px; 
+    font-weight: 400; 
+}
+
+.modal-data-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--grid-line); font-size: 16px; }
+.modal-data-row:last-of-type { border-bottom: none; }
+
+.funny-visual { font-size: 70px; text-align: center; margin: 15px 0; height: 70px; }
+
+/* Botón Google (Centrado y Azul) */
+.btn-google {
+    margin: 30px auto 0 auto; /* Auto en los lados centra bloques */
+    padding: 12px 20px;
+    background: var(--accent); 
+    color: white; border: none; border-radius: 12px;
+    font-weight: 400; font-size: 14px; 
+    display: block; width: fit-content;
+    cursor: pointer; text-decoration: none;
+    font-family: 'Montserrat', sans-serif;
+}
+
+.holiday-info {
+    background: #fff3cd; color: #856404; padding: 10px; border-radius: 8px; margin-bottom: 15px; text-align: center;
+}
+
+/* --- LEYENDA FESTIVOS --- */
+.legend-container {
+    display: flex;
+    justify-content: center; /* Centrar la leyenda */
+    flex-wrap: wrap; /* Permitir que los ítems salten de línea en móvil */
+    padding: 10px 15px;
+    background-color: #ffffff; /* Fondo blanco para destacar */
+    border-top: 1px solid var(--grid-line);
+    box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.05); /* Sombra sutil arriba */
+    font-size: 0.8em;
+    color: var(--text-main);
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    margin: 5px 15px; /* Espacio entre los ítems de la leyenda */
+}
+
+.legend-color {
+    width: 15px;
+    height: 15px;
+    margin-right: 8px;
+    border-radius: 3px;
+    border: 1px solid #ccc; /* Borde sutil */
+}
+
+/* Colores DEFINIDOS por el usuario */
+.legend-color-nac {
+    background-color: #fff5f5; /* Festivo Nacional */
+}
+
+.legend-color-aut {
+    background-color: #f1f8e9; /* Festivo Autonómico/Bizkaia */
+}
+
+.legend-color-loc {
+    background-color: #e3f2fd; /* Festivo Local Barakaldo/Bilbao */
+}
+
+/* --- FINES DE SEMANA --- */
+.weekend {
+    background-color: #f7f7f7 !important; /* Gris muy claro */
+    /* Usamos !important para asegurar que predomine sobre el color blanco 
+       normal, pero que el festivo o 'today' aún puedan sobrescribirlo si es necesario */
+}
+
+/* --- Animaciones --- */
+@keyframes shake { 0%, 100% {transform: translateX(0) scale(1);} 25% {transform: translateX(-5px) scale(1.05);} 75% {transform: translateX(5px) scale(0.95);} }
+.anim-wind { animation: shake 0.5s infinite; }
+@keyframes sun-pulse { 0% { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(255, 193, 7, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0); } }
+.anim-sun { animation: sun-pulse 2s infinite; border-radius: 50%; }
+@keyframes light-rain { 0% {opacity: 1; transform: translateY(0);} 100% {opacity: 0.5; transform: translateY(10px);} }
+@keyframes heavy-rain { 0% {opacity: 1; transform: translateY(0);} 100% {opacity: 0.8; transform: translateY(15px);} }
+.anim-rain-light { animation: light-rain 1s infinite alternate; }
+.anim-rain-heavy { animation: heavy-rain 0.5s infinite alternate; }
+@keyframes storm-flash { 0%, 100% {opacity: 1;} 50% {opacity: 0.3;} }
+.anim-storm { animation: storm-flash 0.1s infinite alternate; }

@@ -1,0 +1,37 @@
+{
+    "2025-01-01": { "desc": "Año Nuevo", "type": "nac" },
+    "2025-01-06": { "desc": "Epifanía del Señor", "type": "nac" },
+    "2025-04-18": { "desc": "Viernes Santo", "type": "nac" },
+    "2025-05-01": { "desc": "Fiesta del Trabajo", "type": "nac" },
+    "2025-07-16": { "desc": "Virgen del Carmen (Barakaldo)", "type": "loc" },
+    "2025-08-15": { "desc": "Asunción de la Virgen", "type": "nac" },
+    "2025-08-25": { "desc": "Aste Nagusia (Bilbao)", "type": "loc" },
+    "2025-10-12": { "desc": "Fiesta Nacional de España", "type": "nac" },
+    "2025-11-01": { "desc": "Todos los Santos", "type": "nac" },
+    "2025-12-06": { "desc": "Día de la Constitución", "type": "nac" },
+    "2025-12-08": { "desc": "Inmaculada Concepción", "type": "nac" },
+    "2025-12-25": { "desc": "Natividad del Señor", "type": "nac" },
+
+    "2026-01-01": { "desc": "Año Nuevo", "type": "nac" },
+  "2026-01-06": { "desc": "Epifanía del Señor", "type": "nac" },
+
+  "2026-04-02": { "desc": "Jueves Santo", "type": "aut" },
+  "2026-04-03": { "desc": "Viernes Santo", "type": "nac" },
+  "2026-04-06": { "desc": "Lunes de Pascua", "type": "aut" },
+
+  "2026-05-01": { "desc": "Fiesta del Trabajo", "type": "nac" },
+
+  "2026-07-16": { "desc": "Virgen del Carmen (Barakaldo)", "type": "loc" },
+  "2026-07-25": { "desc": "Día del Apóstol Santiago", "type": "aut" },
+  "2026-07-31": { "desc": "San Ignacio de Loiola (Barakaldo / Bilbao)", "type": "loc" },
+
+  "2026-08-15": { "desc": "Asunción de la Virgen", "type": "nac" },
+
+  "2026-10-12": { "desc": "Fiesta Nacional de España", "type": "nac" },
+
+  "2026-11-01": { "desc": "Todos los Santos", "type": "nac" },
+
+  "2026-12-06": { "desc": "Día de la Constitución", "type": "nac" },
+  "2026-12-08": { "desc": "Inmaculada Concepción", "type": "nac" },
+  "2026-12-25": { "desc": "Natividad del Señor", "type": "nac" }
+}
