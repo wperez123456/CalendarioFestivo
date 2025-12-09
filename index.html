@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>📅☀️ Calendario/Clima</title>
+    <link href="https://fonts.googleapis.com/css2?family=Brush+Script+MT:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #f8f8fa; /* Fondo muy claro */
+            --text-main: #111111;
+            --text-muted: #a0a0a0;
+            --grid-line: #e0e0e0;
+            --accent: #42a5f5; /* Azul moderno para el botón */
+            
+            /* Colores Festivos */
+            --h-nac: #ffdddd; 
+            --h-loc: #ddedff; 
+        }
+
+        body {
+            /* Fuente solicitada: Brush Script MT. Se añade una reserva genérica. */
+            font-family: 'Brush Script MT', cursive; 
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0; padding: 0;
+            height: 100vh;
+            display: flex; flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* --- Tipografía y Estructura Moderna --- */
+        header { 
+            padding: 20px; 
+            background: var(--bg-color); 
+            border-bottom: 1px solid var(--grid-line); 
+            display: flex; justify-content: space-between; align-items: center; z-index: 10; 
+        }
+        .month-title { 
+            font-size: 24px; 
+            font-weight: 800; 
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            /* La fuente Brush Script no admite muchos estilos en Google Fonts, se ajusta el peso */
+            font-weight: 400; 
+        }
+        .nav-controls button, select { 
+            background: #ededed; 
+            border: none; 
+            padding: 10px 14px; 
+            border-radius: 12px; 
+            font-weight: 400; 
+            font-size: 14px; 
+            margin-left: 5px; 
+            cursor: pointer;
+            color: var(--text-main);
+            font-family: 'Montserrat', sans-serif; /* Mantener controles más legibles */
+        }
+        
+        /* Días de la semana */
+        .weekdays { 
+            display: grid; grid-template-columns: repeat(7, 1fr);
+            text-align: center; font-size: 12px; font-weight: 400; 
+            color: var(--text-muted); padding: 10px 0; background: white;
+            letter-spacing: 0.5px;
+        }
+        .weekdays div:last-child { color: var(--accent); } /* Domingo con acento */
+        
+        /* --- Grid del Calendario --- */
+        .scroll-container { flex-grow: 1; overflow-y: auto; padding-bottom: 80px; }
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); border-top: 1px solid var(--grid-line); }
+
+        .day-cell { 
+            min-height: 100px;
+            border-bottom: 1px solid var(--grid-line); border-right: 1px solid var(--grid-line);
+            padding: 8px; position: relative; cursor: pointer;
+            display: flex; flex-direction: column; justify-content: flex-start;
+        }
+        .day-cell:nth-child(7n) { border-right: none; }
+
+        /* Diseño de Números Modernos (Más grandes, esquinas redondeadas) */
+        .day-number { 
+            font-size: 18px; 
+            font-weight: 400; /* Ajustado para Brush Script */
+            width: 32px; height: 32px;
+            display: flex; align-items: center; justify-content: center; 
+            border-radius: 8px; 
+            align-self: flex-start;
+            font-family: 'Montserrat', sans-serif; /* Mantener números legibles */
+        }
+        .day-cell.today .day-number { 
+            background-color: var(--accent); 
+            color: #fff;
+        }
+
+        /* Icono Festivo (Imagen de pareja viendo pelis - Data URI genérico para ilustración) */
+        .day-cell.is-holiday .day-number { visibility: hidden; }
+        .holiday-visual {
+            font-size: 50px; 
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            filter: drop-shadow(2px 2px 2px rgba(0,0,0,0.1)); 
+            opacity: 0.9;
+        }
+        /* ESTILO PARA MOSTRAR LA IMAGEN COMO BACKGROUND/ICONO */
+        .is-holiday .holiday-visual-img {
+            display: block;
+            width: 50px; 
+            height: 50px;
+            /* Ícono representativo de pareja viendo pelis (simulación Base64) */
+            /* He creado un Data URI genérico que representa una pareja viendo televisión/películas */
+            background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iI2Y5ZDYwMCIgZD0iTTEyIDJjLTQuNCgwLTggMy42LTggOHMwIDggOCA4IDggMy42IDgtOHMtMy42LTgtOC04em0tMiAxMy41YzAgLjYtLjUgMS4xLTEuMSAxLjFIMi41Yy0uNiAwLTEuMS0uNS0xLjEtMS4xdi00LjRjMC0uNi41LTEuMSAxLjEtMS4xaDYuNGMuNiAwIDEuMS41IDEuMSAxdjQuNHptMTMuNSAwaC02LjRjLS42IDAtMS4xLS41LTEuMS0xLjF2LTQuNGMwLS42LjUtMS4xIDEuMS0xLjFoNi40Yy42IDAgMS4xLjUgMS4xIDEuMXY0LjRjMCAuNi0uNSAxLjEtMS4xIDEuMXoiLz48cGF0aCBmaWxsPSIjZjlkNjAwIiBkPSJNMTMgMTNsLS45LS45Yy0uMi0uMi0uNS0uMy0uNy0uM2gtMS45Yy0uMyAwLS42LjEtLjguMy0uMS4xLS41LjItLjctLjRMMi44IDE1LjdjLS4xLjEtLjIgLjMtLjIuNUwxMiAyMmMuMyAwIC41LS4yLjUtLjVWMTMuNXoiLz48cGF0aCBmaWxsPSIjZjlkNjAwIiBkPSJNMTggMTMuNWwtLjktLjlMMTYuMyAxM2MtLjIuMi0uNS4zLS43LjNIMTcuNWMtLjMgMC0uNi0uMS0uOC0uMy0uMS0uMS0uNS0uMi0uNy0uNEwxMi44IDE1LjdjLS4xLjEtLjIuMy0uMi41TDIwIDIyYy4zIDAgLjUtLjIuNS0uNVYxMy41eiIvPjxwYXRoIGZpbGw9IiMwMDdmZmYiIGQ9Ik0xOC41IDQuNWMwLS4zLS4yLS42LS42LS42SDYuMWMtLjMgMC0uNi4yLS42LjZ2MTRjMCAuMy4yLjUuNi41aDExLjJjLjMgMCAuNi0uMi42LS41di0xNHptLTEuMiAxLjZjMC0uMi0uMS0uMy0uMy0uM2gtMTBjLS4yIDAtLjMuMS0uMy4zdjkuNmMwIC4yLjEuMy4zLjNoMTBjLjIgMCAuMy0uMS4zLS4zdi05LjZ6Ii8+PC9zdmc+');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+        }
+
+
+        /* --- MODAL DETALLE --- */
+        .modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.4); z-index: 100; justify-content: center; align-items: flex-end;
+        }
+        .modal.active { display: flex; }
+        .modal-content {
+            background: white; width: 100%; max-width: 400px; 
+            border-top-left-radius: 25px; border-top-right-radius: 25px;
+            padding: 30px 25px; box-shadow: 0 -10px 40px rgba(0,0,0,0.2); animation: slideUp 0.3s ease-out;
+        }
+
+        .modal-header { text-align: center; margin-bottom: 20px; }
+        .modal-date { font-size: 18px; font-weight: 400; }
+        .modal-desc { 
+            font-size: 16px; 
+            color: var(--text-main); 
+            margin-top: 5px; 
+            font-weight: 400; 
+        }
+        
+        .modal-data-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--grid-line); font-size: 16px; }
+        .modal-data-row:last-of-type { border-bottom: none; }
+        
+        /* Visual animado */
+        .funny-visual { font-size: 70px; text-align: center; margin: 15px 0; height: 70px; }
+        
+        /* Botón Google (AZUL y CENTRADO CORREGIDO) */
+        .btn-google {
+            margin-top: 30px; padding: 12px 20px;
+            background: var(--accent); color: white; border: none; border-radius: 12px;
+            font-weight: 400; 
+            font-size: 14px; 
+            
+            /* Corrección para asegurar el centrado */
+            display: block; /* Necesario para que margin auto funcione */
+            width: fit-content; 
+            margin-left: auto; 
+            margin-right: auto; 
+            
+            cursor: pointer; text-decoration: none;
+            font-family: 'Montserrat', sans-serif; /* Mantener la legibilidad en el botón */
+        }
+        
+        .holiday-info {
+            background: #fff3cd; color: #856404; padding: 10px; border-radius: 8px; margin-bottom: 15px; text-align: center;
+        }
+        
+        /* --- ANIMACIONES (Mantener) --- */
+        @keyframes shake { 0%, 100% {transform: translateX(0) scale(1);} 25% {transform: translateX(-5px) scale(1.05);} 75% {transform: translateX(5px) scale(0.95);} }
+        .anim-wind { animation: shake 0.5s infinite; }
+        @keyframes sun-pulse { 0% { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(255, 193, 7, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0); } }
+        .anim-sun { animation: sun-pulse 2s infinite; border-radius: 50%; }
+        @keyframes light-rain { 0% {opacity: 1; transform: translateY(0);} 100% {opacity: 0.5; transform: translateY(10px);} }
+        @keyframes heavy-rain { 0% {opacity: 1; transform: translateY(0);} 100% {opacity: 0.8; transform: translateY(15px);} }
+        .anim-rain-light { animation: light-rain 1s infinite alternate; }
+        .anim-rain-heavy { animation: heavy-rain 0.5s infinite alternate; }
+        @keyframes storm-flash { 0%, 100% {opacity: 1;} 50% {opacity: 0.3;} }
+        .anim-storm { animation: storm-flash 0.1s infinite alternate; }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="month-title" id="monthDisplay">📅☀️ Calendario/Clima</div>
+    <div class="nav-controls">
+        <button onclick="changeMonth(-1)">❮</button>
+        <button onclick="changeMonth(1)">❯</button>
+        <select id="yearSelect" onchange="changeYear()">
+            <option value="2025">2025</option>
+            <option value="2026">2026</option>
+        </select>
+    </div>
+</header>
+
+<div class="weekdays">
+    <div>LUN</div><div>MAR</div><div>MIÉ</div><div>JUE</div><div>VIE</div><div>SÁB</div><div>DOM</div>
+</div>
+
+<div class="scroll-container">
+    <div id="calendar" class="calendar-grid"></div>
+</div>
+
+<div id="detailModal" class="modal" onclick="if(event.target === this) closeModal()">
+    <div class="modal-content">
+        
+        <div class="modal-header">
+            <div id="mDate" class="modal-date">Martes, 9 de diciembre</div>
+            <div id="mWeatherDesc" class="modal-desc"></div> </div>
+
+        <div id="mHolidayBox" class="holiday-info" style="display:none;">
+            <span id="mHolidayText"></span>
+        </div>
+
+        <div id="mFunnyVisual" class="funny-visual"></div>
+
+        <div class="modal-data-row">
+            <span>🌡️ Temperatura</span>
+            <span id="mTemp" style="font-weight:bold">--</span>
+        </div>
+        <div class="modal-data-row">
+            <span>💨 Viento</span>
+            <span id="mWind">--</span>
+        </div>
+        <div class="modal-data-row">
+            <span>🍃 Calidad Aire</span>
+            <span id="mAir">--</span>
+        </div>
+
+        <a id="btnGoogle" href="#" target="_blank" class="btn-google">
+            Ver clima en Google
+        </a>
+    </div>
+</div>
+
+<script>
+    // --- DATOS REALES FESTIVOS 2025 (NACIONALES, BARAKALDO, BILBAO) ---
+    const holidays2025 = {
+        '2025-01-01': { desc: 'Año Nuevo', type: 'nac' },
+        '2025-01-06': { desc: 'Epifanía del Señor', type: 'nac' },
+        '2025-04-18': { desc: 'Viernes Santo', type: 'nac' },
+        '2025-05-01': { desc: 'Fiesta del Trabajo', type: 'nac' },
+        '2025-08-15': { desc: 'Asunción de la Virgen', type: 'nac' },
+        '2025-10-12': { desc: 'Fiesta Nacional de España', type: 'nac' },
+        '2025-11-01': { desc: 'Todos los Santos', type: 'nac' },
+        '2025-12-06': { desc: 'Día de la Constitución', type: 'nac' },
+        '2025-12-08': { desc: 'Inmaculada Concepción', type: 'nac' },
+        '2025-12-25': { desc: 'Natividad del Señor', type: 'nac' },
+        
+        // Locales
+        '2025-07-16': { desc: 'Virgen del Carmen (Barakaldo)', type: 'loc' }, 
+        '2025-08-25': { desc: 'Aste Nagusia (Bilbao)', type: 'loc' }, 
+    };
+
+    // --- CONFIGURACIÓN Y ESTADO ---
+    const LAT = 43.296; // Barakaldo
+    const LON = -2.986;
+    let currentDate = new Date(); 
+    let weatherCache = {}; 
+    const months = ["ENERO", "FEBRERO", "MARZO", "ABRIL", "MAYO", "JUNIO", "JULIO", "AGOSTO", "SEPTIEMBRE", "OCTUBRE", "NOVIEMBRE", "DICIEMBRE"];
+
+    function init() {
+        // Se asegura que el título del header siempre sea el mes actual, no el título general
+        document.getElementById('monthDisplay').innerText = months[currentDate.getMonth()] + ' ' + currentDate.getFullYear();
+        document.getElementById('yearSelect').value = currentDate.getFullYear();
+        renderCalendar();
+        loadWeather();
+    }
+
+    // --- RENDERIZADO CALENDARIO ---
+    function renderCalendar() {
+        const year = currentDate.getFullYear();
+        const month = currentDate.getMonth();
+        document.getElementById('monthDisplay').innerText = months[month];
+
+        const firstDay = new Date(year, month, 1);
+        const lastDay = new Date(year, month + 1, 0);
+        const daysInMonth = lastDay.getDate();
+        
+        let padding = firstDay.getDay() - 1;
+        if(padding === -1) padding = 6;
+
+        const grid = document.getElementById('calendar');
+        grid.innerHTML = '';
+
+        for(let i=0; i<padding; i++) grid.appendChild(document.createElement('div'));
+
+        const today = new Date();
+
+        for(let i=1; i<=daysInMonth; i++) {
+            const dateKey = `${year}-${String(month+1).padStart(2,'0')}-${String(i).padStart(2,'0')}`;
+            const cell = document.createElement('div');
+            cell.className = 'day-cell';
+            
+            let holidayMarkup = '';
+            if(holidays2025[dateKey]) {
+                const h = holidays2025[dateKey];
+                cell.classList.add('is-holiday');
+                cell.style.backgroundColor = h.type === 'nac' ? 'var(--h-nac)' : 'var(--h-loc)';
+                // Ícono Festivo (Usando la imagen simulada en Data URI)
+                holidayMarkup = `<div class="holiday-visual holiday-visual-img"></div>`; 
+            }
+
+            if(i === today.getDate() && month === today.getMonth() && year === today.getFullYear()) {
+                cell.classList.add('today');
+            }
+
+            cell.innerHTML = `
+                <div style="display:flex; justify-content:space-between; width:100%">
+                    <div class="day-number">${i}</div>
+                </div>
+                ${holidayMarkup}
+                <div class="cell-weather" id="w-${dateKey}"></div>
+            `;
+            
+            cell.onclick = () => showDetails(dateKey, i);
+            grid.appendChild(cell);
+        }
+    }
+
+    // --- CARGA DE CLIMA (Mantiene la función para cargar datos) ---
+    async function loadWeather() {
+        const url = `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&daily=weather_code,temperature_2m_max,temperature_2m_min,wind_speed_10m_max,precipitation_sum&timezone=Europe%2FMadrid`;
+        const airUrl = `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${LAT}&longitude=${LON}&hourly=european_aqi&timezone=Europe%2FMadrid`;
+
+        try {
+            const [resW, resA] = await Promise.all([fetch(url), fetch(airUrl)]);
+            const dataW = await resW.json();
+            const dataA = await resA.json();
+
+            if(dataW.daily) {
+                dataW.daily.time.forEach((dateStr, idx) => {
+                    let aqiAvg = 0;
+                    if(dataA.hourly) {
+                        const slice = dataA.hourly.european_aqi.slice(idx*24, (idx*24)+24);
+                        if(slice.length) aqiAvg = slice.reduce((a,b)=>a+b,0) / slice.length;
+                    }
+
+                    weatherCache[dateStr] = {
+                        code: dataW.daily.weather_code[idx],
+                        max: dataW.daily.temperature_2m_max[idx],
+                        min: dataW.daily.temperature_2m_min[idx],
+                        wind: dataW.daily.wind_speed_10m_max[idx],
+                        precip: dataW.daily.precipitation_sum[idx], 
+                        aqi: Math.round(aqiAvg)
+                    };
+
+                    const el = document.getElementById(`w-${dateStr}`);
+                    if(el && !holidays2025[dateStr]) {
+                        el.innerText = getWeatherIcon(dataW.daily.weather_code[idx]);
+                    }
+                });
+            }
+        } catch (e) {
+            console.log("Error cargando clima", e);
+        }
+    }
+    
+    function getWeatherDescription(code, precip) {
+        if(code === 0) return 'Totalmente Despejado'; 
+        if(code === 1) return 'Parcialmente Soleado';
+        if(code <= 3) return 'Mayormente Nublado'; 
+        if(code <= 48) return 'Niebla o Bruma';
+        
+        if(code >= 51 && code <= 60) {
+             if(precip > 5.0) return 'Lluvias Moderadas';
+             if(precip > 0.5) return 'Llovizna Ligera';
+             return 'Llovizna Ocasional';
+        }
+        if(code >= 61 && code <= 67) {
+            if(precip > 10.0) return 'Lluvias Fuertes';
+            return 'Lluvias Moderadas';
+        }
+
+        if(code >= 71 && code <= 77) return 'Nieve';
+        if(code >= 80 && code <= 82) return 'Chubascos Intensos';
+        if(code >= 95) return 'Tormenta Eléctrica Fuerte';
+        
+        return 'Clima Desconocido';
+    }
+
+    function getWeatherIcon(code) {
+        if(code === 0) return '☀️';
+        if(code < 3) return '⛅';
+        if(code < 50) return '🌫️';
+        if(code < 60) return '🌦️';
+        if(code < 67) return '🌧️';
+        if(code < 80) return '🌨️';
+        return '⛈️';
+    }
+    
+    function getAQIText(v) {
+        if(v < 20) return "🔵 Bueno";
+        if(v < 40) return "🟢 Normal";
+        if(v < 60) return "🟠 Regular";
+        return "🔴 Malo";
+    }
+
+    function applyFunnyAnimation(visualEl, data) {
+        visualEl.className = 'funny-visual'; 
+        let icon = getWeatherIcon(data.code);
+        let animationClass = '';
+
+        if(data.code >= 95) { 
+            icon = '⚡'; animationClass = 'anim-storm'; 
+        } else if(data.wind > 40) {
+            icon = '🌬️'; animationClass = 'anim-wind'; 
+        }
+        else if(data.precip > 5.0) { 
+            icon = '☔🌧️🌧️'; animationClass = 'anim-rain-heavy';
+        } else if(data.precip > 0.5) { 
+            icon = '☔🌦️'; animationClass = 'anim-rain-light';
+        } else if(data.code <= 1) { 
+            icon = '🔆'; animationClass = 'anim-sun'; 
+        }
+        else if(data.max > 30) {
+            icon = '🥵'; 
+        } else if(data.max < 5) {
+            icon = '🥶'; 
+        }
+
+        visualEl.innerText = icon;
+        if(animationClass) visualEl.classList.add(animationClass);
+    }
+
+
+    // --- DETALLES ---
+    function showDetails(dateStr, day) {
+        const modal = document.getElementById('detailModal');
+        const data = weatherCache[dateStr];
+        const h = holidays2025[dateStr];
+
+        // 1. Fecha y Botón Google
+        const dateObj = new Date(dateStr);
+        document.getElementById('mDate').innerText = dateObj.toLocaleDateString('es-ES', {weekday:'long', day:'numeric', month:'long'});
+        document.getElementById('btnGoogle').href = `https://www.google.com/search?q=clima+barakaldo+${dateStr}`;
+        
+        // 2. Festivo
+        const box = document.getElementById('mHolidayBox');
+        if(h) {
+            box.style.display = 'block';
+            let city = h.desc.includes('(Barakaldo)') ? 'Barakaldo' : (h.desc.includes('(Bilbao)') ? 'Bilbao' : 'Nacional');
+            let typeText = h.type === 'nac' ? 'Nacional' : `Local de ${city}`;
+            document.getElementById('mHolidayText').innerText = `🎉 Día Festivo (${typeText}): ${h.desc}`;
+        } else {
+            box.style.display = 'none';
+        }
+
+        // 3. Clima y Animaciones
+        const visual = document.getElementById('mFunnyVisual');
+        
+        if(data) {
+            document.getElementById('mTemp').innerText = `${Math.round(data.max)}°C / ${Math.round(data.min)}°C`;
+            document.getElementById('mWind').innerText = `${data.wind} km/h`;
+            document.getElementById('mAir').innerText = getAQIText(data.aqi);
+            
+            document.getElementById('mWeatherDesc').innerText = getWeatherDescription(data.code, data.precip);
+
+            applyFunnyAnimation(visual, data);
+        } else {
+            document.getElementById('mTemp').innerText = "--";
+            document.getElementById('mWind').innerText = "--";
+            document.getElementById('mAir').innerText = "--";
+            document.getElementById('mWeatherDesc').innerText = "Sin Pronóstico (Futuro Lejano)";
+            visual.innerText = "🔮"; 
+            visual.className = 'funny-visual';
+        }
+
+        modal.classList.add('active');
+    }
+
+    function closeModal() { document.getElementById('detailModal').classList.remove('active'); }
+    function changeMonth(d) { currentDate.setMonth(currentDate.getMonth() + d); init(); }
+    function changeYear() { currentDate.setFullYear(document.getElementById('yearSelect').value); init(); }
+    
+    init();
+</script>
+</body>
+</html>
