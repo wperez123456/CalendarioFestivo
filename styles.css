@@ -15,7 +15,9 @@ body {
     background-color: var(--bg-color);
     color: var(--text-main);
     margin: 0; padding: 0;
-    height: 100vh;
+    /* Cambiamos height: 100vh por esto para mejor soporte móvil: */
+    height: 100vh; 
+    height: 100dvh; /* "dvh" se adapta a la barra de direcciones del móvil */
     display: flex; flex-direction: column;
     overflow: hidden;
 }
@@ -171,37 +173,42 @@ header {
 /* --- LEYENDA FESTIVOS --- */
 .legend-container {
     display: flex;
-    flex-wrap: wrap; /* Permitir que los ítems salten de línea */
-    justify-content: center; /* Centrar los ítems */
-    padding: 10px 15px;
+    flex-wrap: wrap; 
+    justify-content: center; /* Centrar todo */
+    padding: 8px 5px; /* Reducir padding vertical */
     background-color: #ffffff;
     border-top: 1px solid var(--grid-line);
     box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.05);
-    font-size: 0.9em; /* Aumentar ligeramente el tamaño del texto */
+    font-size: 0.9em; 
     color: var(--text-main);
-    max-width: 100%; /* Asegurar que no se desborde */
-    box-sizing: border-box; /* Incluir padding en el ancho total */
-
-    flex-shrink: 0; /* Evita que el calendario empuje la leyenda fuera */
-    z-index: 20;    /* Asegura que esté por encima si algo se solapa */
-    background: white; /* Asegurar fondo blanco */
-    padding-bottom: env(safe-area-inset-bottom); /* Respetar gestos en iPhone/Android modernos */
+    
+    /* Aseguramos que no se encoja ni desaparezca */
+    flex-shrink: 0; 
+    z-index: 20;
+    /* Respetar el área segura del iPhone/Android gestual */
+    padding-bottom: calc(8px + env(safe-area-inset-bottom)); 
 }
 
 .legend-item {
     display: flex;
     align-items: center;
-    margin: 5px 10px; /* Reducir el espacio entre ítems */
-    flex: 1 1 calc(50% - 20px); /* Permitir que ocupen el 50% del ancho */
-    max-width: 100%; /* Evitar que se desborden */
+    /* Cambiamos margins para que estén más pegaditos */
+    margin: 2px 8px; 
+    /* Quitamos el flex: 1 1 ... para que ocupen solo lo que necesiten */
+    width: auto; 
 }
 
 .legend-color {
-    width: 12px; /* Reducir el tamaño del cuadro de color */
-    height: 12px;
-    margin-right: 6px; /* Reducir el espacio entre el cuadro y el texto */
+    width: 10px; /* Un poco más pequeño */
+    height: 10px;
+    margin-right: 4px; 
     border-radius: 2px;
     border: 1px solid #ccc;
+    flex-shrink: 0; /* Que el color nunca se aplaste */
+}
+
+.legend-text {
+    white-space: nowrap; /* Evita que el texto de un solo ítem se parta en dos líneas */
 }
 
 /* Colores DEFINIDOS por el usuario */
@@ -226,14 +233,18 @@ header {
 
 @media (max-width: 600px) {
     .legend-container {
-        padding: 10px; /* Reducir el padding en pantallas pequeñas */
-        font-size: 0.8em; /* Reducir el tamaño del texto */
+        padding: 5px 2px;
+        font-size: 0.75rem; /* Texto más pequeño en móvil (aprox 12px) */
     }
 
     .legend-item {
-        flex: 1 1 100%; /* Hacer que cada ítem ocupe el 100% del ancho */
-        margin: 5px 0; /* Reducir el margen entre ítems */
+        margin: 2px 6px; /* Márgenes laterales reducidos */
+        flex: 0 1 auto;  /* IMPORTANTE: No obligar al 100% de ancho */
+        width: auto;
     }
+    
+    /* Opcional: Si los nombres son muy largos, se pueden abreviar en móvil con CSS o JS, 
+       pero con el tamaño de letra reducido deberían caber en 1 o 2 líneas máximo. */
 }
 
 /* --- Animaciones --- */
