@@ -58,21 +58,42 @@ header {
 .weekdays div:last-child { color: var(--accent); }
 
 /* --- Grid del Calendario --- */
-.scroll-container { flex-grow: 1; overflow-y: auto; padding-bottom: 80px; }
-.calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); border-top: 1px solid var(--grid-line); }
+.scroll-container { 
+    flex-grow: 1; 
+    overflow: hidden; /* Quitamos el scroll */
+    padding-bottom: 0; /* Quitamos el padding inferior */
+    display: flex;     /* Para que el grid interno se expanda */
+    flex-direction: column;
+}
+.calendar-grid { 
+    display: grid; 
+    grid-template-columns: repeat(7, 1fr); 
+    /* Esta línea es mágica: crea 6 filas de igual tamaño que llenan el alto disponible */
+    grid-template-rows: repeat(6, 1fr); 
+    height: 100%; 
+    border-top: 1px solid var(--grid-line); 
+}
 
 .day-cell { 
-    min-height: 100px;
-    border-bottom: 1px solid var(--grid-line); border-right: 1px solid var(--grid-line);
-    padding: 8px; position: relative; cursor: pointer;
-    display: flex; flex-direction: column; justify-content: flex-start;
+    /* min-height: 100px;  <-- ELIMINAR ESTA LÍNEA */
+    border-bottom: 1px solid var(--grid-line); 
+    border-right: 1px solid var(--grid-line);
+    padding: 4px; /* Reducimos un poco el padding para ganar espacio en móviles */
+    position: relative; 
+    cursor: pointer;
+    display: flex; 
+    flex-direction: column; 
+    justify-content: flex-start;
+    overflow: hidden; /* Evita que contenido largo rompa el diseño */
 }
 .day-cell:nth-child(7n) { border-right: none; }
 
 .day-number { 
-    font-size: 18px; 
+    
+    font-size: 14px; /* Antes 18px, 14px es mejor para móviles compactos */
+    width: 24px; height: 24px; /* Ajuste proporcional */
     font-weight: 400;
-    width: 32px; height: 32px;
+    
     display: flex; align-items: center; justify-content: center; 
     border-radius: 8px; 
     align-self: flex-start;
@@ -150,28 +171,37 @@ header {
 /* --- LEYENDA FESTIVOS --- */
 .legend-container {
     display: flex;
-    justify-content: center; /* Centrar la leyenda */
-    flex-wrap: wrap; /* Permitir que los ítems salten de línea en móvil */
+    flex-wrap: wrap; /* Permitir que los ítems salten de línea */
+    justify-content: center; /* Centrar los ítems */
     padding: 10px 15px;
-    background-color: #ffffff; /* Fondo blanco para destacar */
+    background-color: #ffffff;
     border-top: 1px solid var(--grid-line);
-    box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.05); /* Sombra sutil arriba */
-    font-size: 0.8em;
+    box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.05);
+    font-size: 0.9em; /* Aumentar ligeramente el tamaño del texto */
     color: var(--text-main);
+    max-width: 100%; /* Asegurar que no se desborde */
+    box-sizing: border-box; /* Incluir padding en el ancho total */
+
+    flex-shrink: 0; /* Evita que el calendario empuje la leyenda fuera */
+    z-index: 20;    /* Asegura que esté por encima si algo se solapa */
+    background: white; /* Asegurar fondo blanco */
+    padding-bottom: env(safe-area-inset-bottom); /* Respetar gestos en iPhone/Android modernos */
 }
 
 .legend-item {
     display: flex;
     align-items: center;
-    margin: 5px 15px; /* Espacio entre los ítems de la leyenda */
+    margin: 5px 10px; /* Reducir el espacio entre ítems */
+    flex: 1 1 calc(50% - 20px); /* Permitir que ocupen el 50% del ancho */
+    max-width: 100%; /* Evitar que se desborden */
 }
 
 .legend-color {
-    width: 15px;
-    height: 15px;
-    margin-right: 8px;
-    border-radius: 3px;
-    border: 1px solid #ccc; /* Borde sutil */
+    width: 12px; /* Reducir el tamaño del cuadro de color */
+    height: 12px;
+    margin-right: 6px; /* Reducir el espacio entre el cuadro y el texto */
+    border-radius: 2px;
+    border: 1px solid #ccc;
 }
 
 /* Colores DEFINIDOS por el usuario */
@@ -192,6 +222,18 @@ header {
     background-color: #f7f7f7 !important; /* Gris muy claro */
     /* Usamos !important para asegurar que predomine sobre el color blanco 
        normal, pero que el festivo o 'today' aún puedan sobrescribirlo si es necesario */
+}
+
+@media (max-width: 600px) {
+    .legend-container {
+        padding: 10px; /* Reducir el padding en pantallas pequeñas */
+        font-size: 0.8em; /* Reducir el tamaño del texto */
+    }
+
+    .legend-item {
+        flex: 1 1 100%; /* Hacer que cada ítem ocupe el 100% del ancho */
+        margin: 5px 0; /* Reducir el margen entre ítems */
+    }
 }
 
 /* --- Animaciones --- */
