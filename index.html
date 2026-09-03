@@ -22,6 +22,13 @@
 <header>
     <div class="month-title" id="monthDisplay" aria-live="polite"></div>
     <div class="nav-controls">
+        <label class="profile-control" for="profileSelect">Perfil
+            <select id="profileSelect" aria-label="Perfil activo">
+                <option value="erica">Erica</option>
+                <option value="wilmer">Wilmer</option>
+            </select>
+        </label>
+        <button type="button" id="notifyButton" class="notify-button">Activar avisos</button>
         <button type="button" onclick="changeMonth(-1)" aria-label="Mes anterior">❮</button>
         <button type="button" onclick="changeMonth(1)" aria-label="Mes siguiente">❯</button>
         <select id="yearSelect" onchange="changeYear()">
@@ -69,6 +76,24 @@
         <a id="btnGoogle" href="#" target="_blank" class="btn-google">
             Ver clima en Google
         </a>
+        <button type="button" id="addEventButton" class="btn-event">Añadir evento</button>
+        <div id="eventList" class="event-list" aria-live="polite"></div>
+
+        <form id="eventForm" class="event-form" hidden>
+            <h3 id="eventFormTitle">Nuevo evento</h3>
+            <label>Título <input id="eventTitle" required maxlength="100" autocomplete="off"></label>
+            <label>Descripción <textarea id="eventDescription" maxlength="500"></textarea></label>
+            <div class="form-row">
+                <label>Inicio <input id="eventStart" type="time"></label>
+                <label>Fin <input id="eventEnd" type="time"></label>
+            </div>
+            <label class="checkbox-label"><input id="eventAllDay" type="checkbox"> Todo el día</label>
+            <label class="checkbox-label"><input id="eventNotify" type="checkbox" checked> Recibir notificación</label>
+            <div class="form-actions">
+                <button type="submit" class="btn-event">Guardar</button>
+                <button type="button" id="cancelEventButton" class="btn-secondary">Cancelar</button>
+            </div>
+        </form>
     </div>
 </div>
 
@@ -88,5 +113,8 @@
 </div>
 
 <script src="script.js?v=20260903"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js?v=20260903"></script>
+<script src="calendar-app.js?v=20260903"></script>
 </body>
 </html>

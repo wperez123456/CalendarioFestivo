@@ -213,6 +213,29 @@ header {
     white-space: nowrap; /* Evita que el texto de un solo ítem se parta en dos líneas */
 }
 
+.profile-control { display: flex; align-items: center; gap: 5px; font: 11px 'Montserrat', sans-serif; color: var(--text-muted); }
+.profile-control select { margin-left: 0; }
+.notify-button, .btn-event, .btn-secondary { border: 0; border-radius: 10px; padding: 11px 14px; font: 600 12px 'Montserrat', sans-serif; cursor: pointer; }
+.notify-button, .btn-event { background: var(--accent); color: white; }
+.btn-secondary { background: #ededed; color: var(--text-main); }
+.event-list { margin-top: 16px; text-align: left; font-family: 'Montserrat', sans-serif; }
+.event-list h3 { margin: 0 0 8px; font-size: 14px; }
+.no-events { color: var(--text-muted); font-size: 13px; text-align: center; }
+.event-row { display: flex; justify-content: space-between; gap: 8px; padding: 9px 0; border-top: 1px solid var(--grid-line); font-size: 13px; }
+.event-row small, .event-row p { display: block; margin: 3px 0 0; color: var(--text-muted); font-size: 11px; }
+.event-row button { align-self: flex-start; border: 0; background: transparent; color: var(--accent); cursor: pointer; font-size: 11px; }
+.event-badge { margin: auto 2px 2px; color: #087f8c; font: 600 10px 'Montserrat', sans-serif; text-align: center; }
+.event-form { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--grid-line); text-align: left; font-family: 'Montserrat', sans-serif; }
+.event-form h3 { margin: 0 0 10px; font-size: 15px; }
+.event-form label { display: block; margin: 8px 0; font-size: 12px; }
+.event-form input, .event-form textarea { box-sizing: border-box; width: 100%; margin-top: 4px; padding: 9px; border: 1px solid var(--grid-line); border-radius: 8px; font: 13px 'Montserrat', sans-serif; }
+.event-form textarea { min-height: 58px; resize: vertical; }
+.form-row { display: flex; gap: 8px; }
+.form-row label { flex: 1; }
+.checkbox-label { display: flex !important; align-items: center; gap: 7px; }
+.checkbox-label input { width: auto; margin: 0; }
+.form-actions { display: flex; gap: 8px; margin-top: 12px; }
+
 #appStatus {
     position: fixed;
     left: 12px;
@@ -251,6 +274,8 @@ header {
     header { gap: 8px; }
     .nav-controls { display: flex; gap: 4px; }
     .nav-controls button, .nav-controls select { margin-left: 0; }
+    .profile-control { flex-direction: column; align-items: stretch; gap: 1px; }
+    .notify-button { padding: 9px 8px; font-size: 10px; }
     .weekdays { font-size: 10px; padding: 7px 0; }
     .day-number { width: 22px; height: 22px; font-size: 12px; }
     .holiday-visual { font-size: 30px; }
