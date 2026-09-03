@@ -85,9 +85,22 @@
   async function enableNotifications() {
     if (!('Notification' in window) || !('serviceWorker' in navigator)) return showStatus('Este navegador no admite notificaciones para esta aplicación.');
     const permission = await Notification.requestPermission();
-    if (permission === 'granted') { await navigator.serviceWorker.register('service-worker.js?v=20260903'); document.getElementById('notifyButton').textContent = 'Avisos activados'; }
+    if (permission === 'granted') {
+      const registration = await navigator.serviceWorker.register('service-worker.js?v=20260903');
+      if (!window.SUPABASE_CONFIG?.vapidPublicKey) return showStatus('Falta configurar la clave pública VAPID.');
+      const subscription = await registration.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: urlBase64ToUint8Array(window.SUPABASE_CONFIG.vapidPublicKey) });
+      if (!cloud) await loadEvents();
+      if (cloud) {
+        const json = subscription.toJSON();
+        const { error } = await cloud.from('push_subscriptions').upsert({ profile_id: activeProfile, endpoint: json.endpoint, p256dh: json.keys?.p256dh, auth: json.keys?.auth, active: true }, { onConflict: 'endpoint' });
+        if (error) throw error;
+      }
+      document.getElementById('notifyButton').textContent = 'Avisos activados';
+      showStatus(cloud ? 'Este dispositivo ya está registrado para recibir avisos.' : 'Avisos preparados en este dispositivo.');
+    }
     else showStatus('Permiso de notificaciones no concedido.');
   }
+  function urlBase64ToUint8Array(value) { const padding = '='.repeat((4 - value.length % 4) % 4); const raw = atob((value + padding).replace(/-/g, '+').replace(/_/g, '/')); return Uint8Array.from([...raw].map(c => c.charCodeAt(0))); }
   function showStatus(message) { if (window.showStatus) window.showStatus(message); else alert(message); }
   function start() {
     const select = document.getElementById('profileSelect'); select.value = activeProfile; select.onchange = async () => { activeProfile = select.value; localStorage.setItem(PROFILE_KEY, activeProfile); renderCalendar(); await loadEvents(); };

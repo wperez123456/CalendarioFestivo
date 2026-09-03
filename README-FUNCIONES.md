@@ -14,6 +14,8 @@ La rama `feature` incorpora eventos por perfil, persistencia local, Service Work
 5. Abrir la aplicación y crear un evento. En la consola del navegador no debe aparecer un error 401/403 de Supabase.
 6. Desplegar la función `send-notifications` y programarla con Supabase Cron.
 
+La clave pública VAPID se configura en `supabase-config.js`; la clave privada debe guardarse como secreto de Edge Functions con el nombre `VAPID_PRIVATE_KEY`.
+
 Sin Supabase configurado, los eventos funcionan en el dispositivo mediante `localStorage`; no se sincronizan entre teléfonos y las notificaciones programadas no pueden ejecutarse en segundo plano.
 
 ## Estado actual de la configuración
