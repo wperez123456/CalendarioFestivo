@@ -24,6 +24,7 @@
       else if (error) console.warn('No se pudieron cargar eventos remotos:', error.message);
     }
     decorateCalendar();
+    renderWeeklySummary();
   }
   async function saveEvent(eventData) {
     const index = events.findIndex(e => e.id === eventData.id);
@@ -34,11 +35,13 @@
       if (error) throw error;
     }
     decorateCalendar();
+    renderWeeklySummary();
   }
   async function removeEvent(id) {
     events = events.filter(e => e.id !== id); persistLocal();
     if (cloud) { const { error } = await cloud.from('events').delete().eq('id', id); if (error) throw error; }
     decorateCalendar();
+    renderWeeklySummary();
   }
   function profileEvents(date) { return events.filter(e => e.profile_id === activeProfile && e.date === date).sort((a,b) => (a.start_time || '').localeCompare(b.start_time || '')); }
   function decorateCalendar() {
@@ -62,7 +65,27 @@
       row.append(edit, del); list.appendChild(row);
     });
   }
-  function escapeHtml(value) { return String(value || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c])); }
+  function escapeHtml(value) { return String(value || '').replace(/[&<>"']/g, c => ({''':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c])); }
+  function displayTime(value) {
+    if (!value) return 'Sin hora';
+    const [hour, minute] = String(value).slice(0, 5).split(':').map(Number);
+    if (!Number.isFinite(hour) || !Number.isFinite(minute)) return 'Sin hora';
+    return new Intl.DateTimeFormat('es-ES', { hour: 'numeric', minute: '2-digit', hour12: true }).format(new Date(2000, 0, 1, hour, minute));
+  }
+  function renderWeeklySummary() {
+    const list = document.getElementById('weeklySummaryList');
+    const profileLabel = document.getElementById('weeklySummaryProfile');
+    if (!list) return;
+    const now = new Date();
+    const monday = new Date(now); const day = monday.getDay() || 7;
+    monday.setHours(0, 0, 0, 0); monday.setDate(monday.getDate() - day + 1);
+    const sunday = new Date(monday); sunday.setDate(sunday.setDate() + 6); sunday.setHours(23, 59, 59, 999);
+    const items = events.filter(event => event.profile_id === activeProfile && event.date >= toDateKey(monday) && event.date <= toDateKey(sunday)).sort((a, b) => `${a.date}${a.start_time || ''}`.localeCompare(`${b.date}${b.start_time || ''}`));
+    if (profileLabel) profileLabel.textContent = profiles[activeProfile];
+    list.innerHTML = items.length ? items.map(event => `<div class="weekly-event"><strong>${formatShortDate(event.date)}</strong><span>${escapeHtml(event.title)}</span></div>`).join('') : '<p class="weekly-empty">No hay eventos programados para esta semana.</p>';
+  }
+  function toDateKey(date) { return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`; }
+  function formatShortDate(dateKey) { return new Intl.DateTimeFormat('es-ES', { weekday: 'short', day: 'numeric', month: 'short' }).format(new Date(`${dateKey}T12:00:00`)); }
   function openEventForm(event = null) {
     editingId = event?.id || null;
     const form = document.getElementById('eventForm'); form.hidden = false;
@@ -71,16 +94,22 @@
     document.getElementById('eventDescription').value = event?.description || '';
     document.getElementById('eventStart').value = event?.start_time || '';
     document.getElementById('eventEnd').value = event?.end_time || '';
+    document.getElementById('eventNotificationTime').value = event?.notification_time || '08:00';
     document.getElementById('eventAllDay').checked = !!event?.all_day;
     document.getElementById('eventNotify').checked = event?.notification_enabled !== false;
+    updateTimeReadouts();
     document.getElementById('eventTitle').focus();
   }
   function closeEventForm() { document.getElementById('eventForm').hidden = true; editingId = null; }
   async function submitEvent(e) {
     e.preventDefault();
-    const item = { id: editingId || crypto.randomUUID(), profile_id: activeProfile, date: selectedDate, title: document.getElementById('eventTitle').value.trim(), description: document.getElementById('eventDescription').value.trim(), start_time: document.getElementById('eventStart').value || null, end_time: document.getElementById('eventEnd').value || null, all_day: document.getElementById('eventAllDay').checked, notification_enabled: document.getElementById('eventNotify').checked, updated_at: new Date().toISOString() };
+    const item = { id: editingId || crypto.randomUUID(), profile_id: activeProfile, date: selectedDate, title: document.getElementById('eventTitle').value.trim(), description: document.getElementById('eventDescription').value.trim(), start_time: document.getElementById('eventStart').value || null, end_time: document.getElementById('eventEnd').value || null, all_day: document.getElementById('eventAllDay').checked, notification_enabled: document.getElementById('eventNotify').checked, notification_time: document.getElementById('eventNotificationTime').value || '08:00', updated_at: new Date().toISOString() };
     if (!item.title) return;
-    try { await saveEvent(item); closeEventForm(); renderEventList(); } catch (error) { showStatus(`No se pudo guardar en la nube: ${error.message}`); }
+    try { await saveEvent(item); closeEventForm(); renderEventList(); } catch (error) { showStatus('No se pudo guardar en la nube: ' + error.message); }
+  }
+  function updateTimeReadouts() {
+    document.getElementById('eventStartDisplay').textContent = displayTime(document.getElementById('eventStart').value);
+    document.getElementById('eventEndDisplay').textContent = displayTime(document.getElementById('eventEnd').value);
   }
   async function enableNotifications() {
     if (!('Notification' in window) || !('serviceWorker' in navigator)) return showStatus('Este navegador no admite notificaciones para esta aplicación.');
@@ -107,11 +136,13 @@
     document.getElementById('addEventButton').onclick = () => openEventForm();
     document.getElementById('cancelEventButton').onclick = closeEventForm;
     document.getElementById('eventForm').onsubmit = submitEvent;
+    document.getElementById('eventStart').addEventListener('input', updateTimeReadouts);
+    document.getElementById('eventEnd').addEventListener('input', updateTimeReadouts);
     document.getElementById('notifyButton').onclick = enableNotifications;
     const originalShow = window.showDetails;
     window.showDetails = async (date, day) => { selectedDate = date; originalShow(date, day); renderEventList(); };
     const originalRender = window.renderCalendar;
-    window.renderCalendar = () => { originalRender(); decorateCalendar(); };
+    window.renderCalendar = () => { originalRender(); decorateCalendar(); renderWeeklySummary(); };
     const originalClose = window.closeModal;
     window.closeModal = () => { closeEventForm(); originalClose(); };
     loadEvents();
