@@ -4,31 +4,35 @@ const LON = -2.986;
 let currentDate = new Date(); 
 let weatherCache = {}; 
 let holidaysData = {}; // Se llenará desde el JSON
+let isLoading = false;
 
 const months = ["ENERO", "FEBRERO", "MARZO", "ABRIL", "MAYO", "JUNIO", "JULIO", "AGOSTO", "SEPTIEMBRE", "OCTUBRE", "NOVIEMBRE", "DICIEMBRE"];
 
 // --- Inicialización ---
 async function init() {
+    if (isLoading) return;
+    isLoading = true;
     await loadHolidays(); // Cargar festivos primero
     
     // Configurar fecha inicial
-    document.getElementById('monthDisplay').innerText = months[currentDate.getMonth()] + ' ' + currentDate.getFullYear();
-    document.getElementById('yearSelect').value = currentDate.getFullYear();
+    document.getElementById('yearSelect').value = String(currentDate.getFullYear());
     
     renderCalendar();
-    loadWeather();
+    await loadWeather();
+    isLoading = false;
 }
 
 // Cargar archivo JSON
 async function loadHolidays() {
     try {
-        const response = await fetch('holidays.json');
+        const response = await fetch(`holidays.json?v=${Date.now()}`, { cache: 'no-store' });
         if (!response.ok) throw new Error("No se pudo cargar holidays.json");
         holidaysData = await response.json();
     } catch (error) {
         console.error("Error cargando festivos:", error);
         // Fallback vacío si falla la carga
         holidaysData = {};
+        showStatus('No se pudieron cargar los festivos. Revisa la conexión y vuelve a abrir la página.');
     }
 }
 
@@ -36,7 +40,7 @@ async function loadHolidays() {
 function renderCalendar() {
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
-    document.getElementById('monthDisplay').innerText = months[month];
+    document.getElementById('monthDisplay').innerText = `${months[month]} ${year}`;
 
     const firstDay = new Date(year, month, 1);
     const lastDay = new Date(year, month + 1, 0);
@@ -104,7 +108,12 @@ async function loadWeather() {
     const airUrl = `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${LAT}&longitude=${LON}&hourly=european_aqi&timezone=Europe%2FMadrid`;
 
     try {
-        const [resW, resA] = await Promise.all([fetch(url), fetch(airUrl)]);
+        weatherCache = {};
+        const [resW, resA] = await Promise.all([
+            fetch(`${url}&_=${Date.now()}`, { cache: 'no-store' }),
+            fetch(`${airUrl}&_=${Date.now()}`, { cache: 'no-store' })
+        ]);
+        if (!resW.ok || !resA.ok) throw new Error('El servicio meteorológico no está disponible');
         const dataW = await resW.json();
         const dataA = await resA.json();
 
@@ -133,8 +142,22 @@ async function loadWeather() {
             });
         }
     } catch (e) {
-        console.log("Error cargando clima", e);
+        console.warn("Error cargando clima", e);
+        showStatus('El calendario está disponible, pero el clima no pudo actualizarse ahora.');
     }
+}
+
+function showStatus(message) {
+    let status = document.getElementById('appStatus');
+    if (!status) {
+        status = document.createElement('div');
+        status.id = 'appStatus';
+        status.setAttribute('role', 'status');
+        document.body.appendChild(status);
+    }
+    status.textContent = message;
+    window.clearTimeout(showStatus.timer);
+    showStatus.timer = window.setTimeout(() => status.remove(), 5000);
 }
 
 // --- Ayudantes Clima ---
@@ -191,7 +214,7 @@ function showDetails(dateStr, day) {
     const data = weatherCache[dateStr];
     const h = holidaysData[dateStr]; // Usar variable dinámica
 
-    const dateObj = new Date(dateStr);
+    const dateObj = new Date(`${dateStr}T12:00:00`);
     document.getElementById('mDate').innerText = dateObj.toLocaleDateString('es-ES', {weekday:'long', day:'numeric', month:'long'});
     document.getElementById('btnGoogle').href = `https://www.google.com/search?q=clima+barakaldo+${dateStr}`;
     
@@ -226,7 +249,16 @@ function showDetails(dateStr, day) {
 
 function closeModal() { document.getElementById('detailModal').classList.remove('active'); }
 function changeMonth(d) { currentDate.setMonth(currentDate.getMonth() + d); init(); }
-function changeYear() { currentDate.setFullYear(document.getElementById('yearSelect').value); init(); }
+function changeYear() { currentDate.setFullYear(Number(document.getElementById('yearSelect').value)); init(); }
+
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') init();
+});
+
+// Si el navegador restaura la página desde su caché de navegación, recárgala una vez.
+window.addEventListener('pageshow', (event) => {
+    if (event.persisted) window.location.reload();
+});
 
 // Arrancar
 init();

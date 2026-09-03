@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Calendario/Clima</title>
 
     <link rel="icon" type="image/png" sizes="32x32" href="image/icono-32x32.png">
@@ -20,17 +20,10 @@
 <body>
 
 <header>
-    <div class="month-title" id="monthDisplay"></div>
-    <script>
-        document.addEventListener("DOMContentLoaded", () => {
-            const monthNames = ["ENERO", "FEBRERO", "MARZO", "ABRIL", "MAYO", "JUNIO", "JULIO", "AGOSTO", "SEPTIEMBRE", "OCTUBRE", "NOVIEMBRE", "DICIEMBRE"];
-            const currentMonth = new Date().getMonth();
-            document.getElementById("monthDisplay").textContent = monthNames[currentMonth];
-        });
-    </script>
+    <div class="month-title" id="monthDisplay" aria-live="polite"></div>
     <div class="nav-controls">
-        <button onclick="changeMonth(-1)">❮</button>
-        <button onclick="changeMonth(1)">❯</button>
+        <button type="button" onclick="changeMonth(-1)" aria-label="Mes anterior">❮</button>
+        <button type="button" onclick="changeMonth(1)" aria-label="Mes siguiente">❯</button>
         <select id="yearSelect" onchange="changeYear()">
             <option value="2025">2025</option>
             <option value="2026">2026</option>
@@ -43,7 +36,7 @@
 </div>
 
 <div class="scroll-container">
-    <div id="calendar" class="calendar-grid"></div>
+    <div id="calendar" class="calendar-grid" aria-label="Calendario"></div>
 </div>
 
 <div id="detailModal" class="modal" onclick="if(event.target === this) closeModal()">
