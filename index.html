@@ -11,110 +11,56 @@
     <link rel="apple-touch-icon" sizes="180x180" href="image/icono-180x180.png">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#ffffff">
-    
     <link href="https://fonts.googleapis.com/css2?family=Brush+Script+MT:wght@400;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Comic+Sans+MS:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-
 <header>
     <div class="month-title" id="monthDisplay" aria-live="polite"></div>
     <div class="nav-controls">
         <label class="profile-control" for="profileSelect">Perfil
-            <select id="profileSelect" aria-label="Perfil activo">
-                <option value="erica">Erica</option>
-                <option value="wilmer">Wilmer</option>
-            </select>
+            <select id="profileSelect" aria-label="Perfil activo"><option value="erica">Erica</option><option value="wilmer">Wilmer</option></select>
         </label>
         <button type="button" id="notifyButton" class="notify-button">Activar avisos</button>
-        <button type="button" onclick="changeMonth(-1)" aria-label="Mes anterior">❮</button>
-        <button type="button" onclick="changeMonth(1)" aria-label="Mes siguiente">❯</button>
-        <select id="yearSelect" onchange="changeYear()">
-            <option value="2025">2025</option>
-            <option value="2026">2026</option>
-        </select>
+        <div class="month-nav" aria-label="Cambiar mes">
+            <button type="button" onclick="changeMonth(-1)" aria-label="Mes anterior">❮</button>
+            <button type="button" onclick="changeMonth(1)" aria-label="Mes siguiente">❯</button>
+        </div>
+        <select id="yearSelect" onchange="changeYear()"><option value="2025">2025</option><option value="2026">2026</option></select>
     </div>
 </header>
-
-<div class="weekdays">
-    <div>LUN</div><div>MAR</div><div>MIÉ</div><div>JUE</div><div>VIE</div><div>SÁB</div><div>DOM</div>
-</div>
-
-<div class="scroll-container">
-    <div id="calendar" class="calendar-grid" aria-label="Calendario"></div>
-</div>
-
+<div class="weekdays"><div>LUN</div><div>MAR</div><div>MIÉ</div><div>JUE</div><div>VIE</div><div>SÁB</div><div>DOM</div></div>
+<div class="scroll-container"><div id="calendar" class="calendar-grid" aria-label="Calendario"></div></div>
+<section id="weeklySummary" class="weekly-summary" aria-labelledby="weeklySummaryTitle">
+    <div class="weekly-summary-heading"><h2 id="weeklySummaryTitle">Eventos de esta semana</h2><span id="weeklySummaryProfile"></span></div>
+    <div id="weeklySummaryList" class="weekly-summary-list" aria-live="polite"></div>
+</section>
 <div id="detailModal" class="modal" onclick="if(event.target === this) closeModal()">
     <div class="modal-content">
-        
-        <div class="modal-header">
-            <div id="mDate" class="modal-date">Martes, 9 de diciembre</div>
-            <div id="mWeatherDesc" class="modal-desc"></div> 
-        </div>
-
-        <div id="mHolidayBox" class="holiday-info" style="display:none;">
-            <span id="mHolidayText"></span>
-        </div>
-
+        <button type="button" class="modal-close" onclick="closeModal()" aria-label="Cerrar detalle">×</button>
+        <div class="modal-header"><div id="mDate" class="modal-date">Martes, 9 de diciembre</div><div id="mWeatherDesc" class="modal-desc"></div></div>
+        <div id="mHolidayBox" class="holiday-info" style="display:none;"><span id="mHolidayText"></span></div>
         <div id="mFunnyVisual" class="funny-visual"></div>
-
-        <div class="modal-data-row">
-            <span>🌡️ Temperatura</span>
-            <span id="mTemp" style="font-weight:bold">--</span>
-        </div>
-        <div class="modal-data-row">
-            <span>💨 Viento</span>
-            <span id="mWind">--</span>
-        </div>
-        <div class="modal-data-row">
-            <span>🍃 Calidad Aire</span>
-            <span id="mAir">--</span>
-        </div>
-
-        <a id="btnGoogle" href="#" target="_blank" class="btn-google">
-            Ver clima en Google
-        </a>
-        <button type="button" id="addEventButton" class="btn-event">Añadir evento</button>
+        <div class="modal-data-row"><span>🌡️ Temperatura</span><span id="mTemp" style="font-weight:bold">--</span></div>
+        <div class="modal-data-row"><span>💨 Viento</span><span id="mWind">--</span></div>
+        <div class="modal-data-row"><span>🍃 Calidad Aire</span><span id="mAir">--</span></div>
+        <div class="modal-actions"><a id="btnGoogle" href="#" target="_blank" class="btn-google">Ver clima en Google</a><button type="button" id="addEventButton" class="btn-event">Añadir evento</button></div>
         <div id="eventList" class="event-list" aria-live="polite"></div>
-
         <form id="eventForm" class="event-form" hidden>
             <h3 id="eventFormTitle">Nuevo evento</h3>
             <label>Título <input id="eventTitle" required maxlength="100" autocomplete="off"></label>
             <label>Descripción <textarea id="eventDescription" maxlength="500"></textarea></label>
-            <div class="form-row">
-                <label>Inicio <input id="eventStart" type="time"></label>
-                <label>Fin <input id="eventEnd" type="time"></label>
-            </div>
+            <div class="form-row"><label>Inicio <input id="eventStart" type="time"></label><label>Fin <input id="eventEnd" type="time"></label></div>
+            <div class="time-readouts" aria-live="polite"><span>Inicio: <strong id="eventStartDisplay">Sin hora</strong></span><span>Fin: <strong id="eventEndDisplay">Sin hora</strong></span></div>
             <label class="checkbox-label"><input id="eventAllDay" type="checkbox"> Todo el día</label>
             <label class="checkbox-label"><input id="eventNotify" type="checkbox" checked> Recibir notificación</label>
-            <div class="form-actions">
-                <button type="submit" class="btn-event">Guardar</button>
-                <button type="button" id="cancelEventButton" class="btn-secondary">Cancelar</button>
-            </div>
+            <label>Hora del aviso <input id="eventNotificationTime" type="time" value="08:00" aria-describedby="notificationHelp"><small id="notificationHelp" class="field-help">Por defecto 08:00. El aviso se entrega durante 10 minutos.</small></label>
+            <div class="form-actions"><button type="submit" class="btn-event">Guardar</button><button type="button" id="cancelEventButton" class="btn-secondary">Cancelar</button></div>
         </form>
     </div>
 </div>
-
-<div class="legend-container">
-    <div class="legend-item">
-        <span class="legend-color legend-color-nac"></span>
-        <span class="legend-text">Festivo Nacional</span>
-    </div>
-    <div class="legend-item">
-        <span class="legend-color legend-color-aut"></span>
-        <span class="legend-text">Festivo Bizkaia/Autonómico</span>
-    </div>
-    <div class="legend-item">
-        <span class="legend-color legend-color-loc"></span>
-        <span class="legend-text">Festivo Local (Barakaldo/Bilbao)</span>
-    </div>
-</div>
-
-<script src="script.js?v=20260903"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="supabase-config.js?v=20260903"></script>
-<script src="calendar-app.js?v=20260903"></script>
+<div class="legend-container"><div class="legend-item"><span class="legend-color legend-color-nac"></span><span class="legend-text">Festivo Nacional</span></div><div class="legend-item"><span class="legend-color legend-color-aut"></span><span class="legend-text">Festivo Bizkaia/Autonómico</span></div><div class="legend-item"><span class="legend-color legend-color-loc"></span><span class="legend-text">Festivo Local (Barakaldo/Bilbao)</span></div></div>
+<script src="script.js?v=20260903"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="supabase-config.js?v=20260903"></script><script src="calendar-app.js?v=20260903"></script>
 </body>
 </html>
