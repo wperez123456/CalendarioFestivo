@@ -308,3 +308,50 @@ header {
 .anim-rain-heavy { animation: heavy-rain 0.5s infinite alternate; }
 @keyframes storm-flash { 0%, 100% {opacity: 1;} 50% {opacity: 0.3;} }
 .anim-storm { animation: storm-flash 0.1s infinite alternate; }
+
+
+
+/* Ajustes responsive de la interfaz y del modal */
+header { gap: 12px; }
+.nav-controls { display: grid; grid-template-columns: auto auto auto auto; align-items: center; gap: 6px; }
+.month-nav { display: flex; gap: 4px; }
+.nav-controls button, .nav-controls select { min-height: 44px; }
+.modal { align-items: center; padding: 16px; }
+.modal-content { position: relative; max-width: 430px; max-height: min(760px, 90dvh); overflow-y: auto; padding-bottom: calc(24px + env(safe-area-inset-bottom)); }
+.modal-close { position: absolute; top: 10px; right: 12px; width: 40px; height: 40px; border: 0; border-radius: 50%; background: #f1f3f4; color: #555; font-size: 26px; line-height: 1; cursor: pointer; }
+.modal-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 24px; }
+.btn-google { margin: 0; display: flex; width: auto; min-height: 44px; box-sizing: border-box; align-items: center; justify-content: center; }
+.event-form input[type="time"] { min-height: 42px; color-scheme: light; }
+.time-readouts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: -2px; color: var(--text-muted); font-size: 11px; }
+.time-readouts strong { color: var(--text-main); font-size: 12px; }
+.field-help { display: block; margin-top: 4px; color: var(--text-muted); font-size: 10px; line-height: 1.35; }
+.weekly-summary { flex: 0 0 auto; padding: 12px 16px 14px; background: #fff; border-top: 1px solid var(--grid-line); border-bottom: 1px solid var(--grid-line); font-family: 'Montserrat', sans-serif; }
+.weekly-summary-heading { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.weekly-summary h2 { margin: 0; font-size: 14px; }
+.weekly-summary-heading span { color: var(--text-muted); font-size: 11px; }
+.weekly-summary-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px 12px; margin-top: 8px; }
+.weekly-event { min-width: 0; color: var(--text-main); font-size: 12px; }
+.weekly-event strong { display: block; color: var(--accent); font-size: 10px; text-transform: uppercase; }
+.weekly-empty { margin: 0; color: var(--text-muted); font-size: 12px; }
+@media (max-width: 600px) {
+  body { overflow: auto; }
+  header { display: block; padding-inline: 10px; }
+  .month-title { text-align: center; margin-bottom: 8px; }
+  .nav-controls { grid-template-columns: 1fr 1fr; gap: 6px; }
+  .nav-controls button, .nav-controls select { margin-left: 0; }
+  .profile-control { flex-direction: row; justify-content: space-between; gap: 4px; }
+  .profile-control select { flex: 1; }
+  .notify-button { padding: 9px 8px; font-size: 10px; }
+  .month-nav { justify-content: stretch; }
+  .month-nav button { flex: 1; }
+  #yearSelect { width: 100%; }
+  .weekdays { font-size: 10px; padding: 7px 0; }
+  .day-number { width: 22px; height: 22px; font-size: 12px; }
+  .cell-weather { font-size: 18px; text-align: center; }
+  .modal { align-items: flex-end; padding: 0; }
+  .modal-content { max-height: 88dvh; border-radius: 22px 22px 0 0; padding: 32px 16px calc(18px + env(safe-area-inset-bottom)); }
+  .modal-actions { gap: 8px; }
+  .modal-actions .btn-google, .modal-actions .btn-event { min-width: 0; padding-inline: 8px; font-size: 11px; }
+  .weekly-summary { padding-inline: 10px; }
+  .weekly-summary-list { grid-template-columns: 1fr 1fr; }
+}
