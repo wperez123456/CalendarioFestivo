@@ -65,7 +65,7 @@
       row.append(edit, del); list.appendChild(row);
     });
   }
-  function escapeHtml(value) { return String(value || '').replace(/[&<>"']/g, c => ({''':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c])); }
+  function escapeHtml(value) { return String(value || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c])); }
   function displayTime(value) {
     if (!value) return 'Sin hora';
     const [hour, minute] = String(value).slice(0, 5).split(':').map(Number);
@@ -79,7 +79,7 @@
     const now = new Date();
     const monday = new Date(now); const day = monday.getDay() || 7;
     monday.setHours(0, 0, 0, 0); monday.setDate(monday.getDate() - day + 1);
-    const sunday = new Date(monday); sunday.setDate(sunday.setDate() + 6); sunday.setHours(23, 59, 59, 999);
+    const sunday = new Date(monday); sunday.setDate(sunday.getDate() + 6); sunday.setHours(23, 59, 59, 999);
     const items = events.filter(event => event.profile_id === activeProfile && event.date >= toDateKey(monday) && event.date <= toDateKey(sunday)).sort((a, b) => `${a.date}${a.start_time || ''}`.localeCompare(`${b.date}${b.start_time || ''}`));
     if (profileLabel) profileLabel.textContent = profiles[activeProfile];
     list.innerHTML = items.length ? items.map(event => `<div class="weekly-event"><strong>${formatShortDate(event.date)}</strong><span>${escapeHtml(event.title)}</span></div>`).join('') : '<p class="weekly-empty">No hay eventos programados para esta semana.</p>';
@@ -105,7 +105,7 @@
     e.preventDefault();
     const item = { id: editingId || crypto.randomUUID(), profile_id: activeProfile, date: selectedDate, title: document.getElementById('eventTitle').value.trim(), description: document.getElementById('eventDescription').value.trim(), start_time: document.getElementById('eventStart').value || null, end_time: document.getElementById('eventEnd').value || null, all_day: document.getElementById('eventAllDay').checked, notification_enabled: document.getElementById('eventNotify').checked, notification_time: document.getElementById('eventNotificationTime').value || '08:00', updated_at: new Date().toISOString() };
     if (!item.title) return;
-    try { await saveEvent(item); closeEventForm(); renderEventList(); } catch (error) { showStatus('No se pudo guardar en la nube: ' + error.message); }
+    try { await saveEvent(item); closeEventForm(); renderEventList(); } catch (error) { showStatus(`No se pudo guardar en la nube: ${error.message}`); }
   }
   function updateTimeReadouts() {
     document.getElementById('eventStartDisplay').textContent = displayTime(document.getElementById('eventStart').value);
