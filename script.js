@@ -7,6 +7,7 @@ let holidaysData = {}; // Se llenará desde el JSON
 let isLoading = false;
 
 const months = ["ENERO", "FEBRERO", "MARZO", "ABRIL", "MAYO", "JUNIO", "JULIO", "AGOSTO", "SEPTIEMBRE", "OCTUBRE", "NOVIEMBRE", "DICIEMBRE"];
+const supportedYears = [2025, 2026, 2027];
 
 // --- Inicialización ---
 async function init() {
@@ -15,7 +16,14 @@ async function init() {
     await loadHolidays(); // Cargar festivos primero
     
     // Configurar fecha inicial
-    document.getElementById('yearSelect').value = String(currentDate.getFullYear());
+    const yearSelect = document.getElementById('yearSelect');
+    if (!supportedYears.includes(currentDate.getFullYear())) currentDate.setFullYear(2026);
+    yearSelect.value = String(currentDate.getFullYear());
+    const monthSelect = document.getElementById('monthSelect');
+    if (monthSelect && !monthSelect.options.length) {
+        months.forEach((month, index) => monthSelect.add(new Option(month, String(index))));
+    }
+    if (monthSelect) monthSelect.value = String(currentDate.getMonth());
     
     renderCalendar();
     await loadWeather();
@@ -104,7 +112,7 @@ function renderCalendar() {
 
 // --- Carga Clima (Open-Meteo) ---
 async function loadWeather() {
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&daily=weather_code,temperature_2m_max,temperature_2m_min,wind_speed_10m_max,precipitation_sum&timezone=Europe%2FMadrid`;
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&current=temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,wind_speed_10m,precipitation,rain&daily=weather_code,temperature_2m_max,temperature_2m_min,wind_speed_10m_max,precipitation_sum&forecast_days=16&temperature_unit=celsius&windspeed_unit=kmh&precipitation_unit=mm&timezone=Europe%2FMadrid`;
     const airUrl = `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${LAT}&longitude=${LON}&hourly=european_aqi&timezone=Europe%2FMadrid`;
 
     try {
@@ -117,6 +125,18 @@ async function loadWeather() {
         const dataW = await resW.json();
         const dataA = await resA.json();
 
+        if(dataW.current) {
+            const currentDay = dataW.current.time.slice(0, 10);
+            weatherCache[currentDay] = {
+                ...(weatherCache[currentDay] || {}),
+                current: dataW.current.temperature_2m,
+                feelsLike: dataW.current.apparent_temperature,
+                humidity: dataW.current.relative_humidity_2m,
+                currentWind: dataW.current.wind_speed_10m,
+                currentCode: dataW.current.weather_code,
+                currentPrecip: dataW.current.precipitation
+            };
+        }
         if(dataW.daily) {
             dataW.daily.time.forEach((dateStr, idx) => {
                 let aqiAvg = 0;
@@ -126,6 +146,7 @@ async function loadWeather() {
                 }
 
                 weatherCache[dateStr] = {
+                    ...(weatherCache[dateStr] || {}),
                     code: dataW.daily.weather_code[idx],
                     max: dataW.daily.temperature_2m_max[idx],
                     min: dataW.daily.temperature_2m_min[idx],
@@ -231,8 +252,9 @@ function showDetails(dateStr, day) {
     const visual = document.getElementById('mFunnyVisual');
     
     if(data) {
-        document.getElementById('mTemp').innerText = `${Math.round(data.max)}°C / ${Math.round(data.min)}°C`;
-        document.getElementById('mWind').innerText = `${data.wind} km/h`;
+        const currentText = data.current != null ? `Ahora ${Math.round(data.current)}°C · ` : '';
+        document.getElementById('mTemp').innerText = `${currentText}${Math.round(data.max)}°C / ${Math.round(data.min)}°C`;
+        document.getElementById('mWind').innerText = `${data.currentWind ?? data.wind} km/h`;
         document.getElementById('mAir').innerText = getAQIText(data.aqi);
         document.getElementById('mWeatherDesc').innerText = getWeatherDescription(data.code, data.precip);
         applyFunnyAnimation(visual, data);
@@ -248,8 +270,10 @@ function showDetails(dateStr, day) {
 }
 
 function closeModal() { document.getElementById('detailModal').classList.remove('active'); }
+function changeMonthSelect() { currentDate.setMonth(Number(document.getElementById('monthSelect').value)); init(); }
 function changeMonth(d) { currentDate.setMonth(currentDate.getMonth() + d); init(); }
 function changeYear() { currentDate.setFullYear(Number(document.getElementById('yearSelect').value)); init(); }
+window.refreshWeather = loadWeather;
 
 document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible') init();

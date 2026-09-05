@@ -29,13 +29,13 @@
             </select>
         </label>
         <button type="button" id="notifyButton" class="notify-button">Activar avisos</button>
-        <div class="month-nav" aria-label="Cambiar mes">
-            <button type="button" onclick="changeMonth(-1)" aria-label="Mes anterior">❮</button>
-            <button type="button" onclick="changeMonth(1)" aria-label="Mes siguiente">❯</button>
-        </div>
+        <label class="month-control" for="monthSelect">Mes
+            <select id="monthSelect" aria-label="Mes visible" onchange="changeMonthSelect()"></select>
+        </label>
         <select id="yearSelect" onchange="changeYear()">
             <option value="2025">2025</option>
             <option value="2026">2026</option>
+            <option value="2027">2027</option>
         </select>
     </div>
 </header>

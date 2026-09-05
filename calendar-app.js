@@ -132,7 +132,7 @@
   function urlBase64ToUint8Array(value) { const padding = '='.repeat((4 - value.length % 4) % 4); const raw = atob((value + padding).replace(/-/g, '+').replace(/_/g, '/')); return Uint8Array.from([...raw].map(c => c.charCodeAt(0))); }
   function showStatus(message) { if (window.showStatus) window.showStatus(message); else alert(message); }
   function start() {
-    const select = document.getElementById('profileSelect'); select.value = activeProfile; select.onchange = async () => { activeProfile = select.value; localStorage.setItem(PROFILE_KEY, activeProfile); renderCalendar(); await loadEvents(); };
+    const select = document.getElementById('profileSelect'); select.value = activeProfile; select.onchange = async () => { activeProfile = select.value; localStorage.setItem(PROFILE_KEY, activeProfile); renderCalendar(); if (window.refreshWeather) await window.refreshWeather(); await loadEvents(); };
     document.getElementById('addEventButton').onclick = () => openEventForm();
     document.getElementById('cancelEventButton').onclick = closeEventForm;
     document.getElementById('eventForm').onsubmit = submitEvent;
