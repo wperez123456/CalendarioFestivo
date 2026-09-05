@@ -88,34 +88,41 @@
   function formatShortDate(dateKey) { return new Intl.DateTimeFormat('es-ES', { weekday: 'short', day: 'numeric', month: 'short' }).format(new Date(`${dateKey}T12:00:00`)); }
   function openEventForm(event = null) {
     editingId = event?.id || null;
-    const form = document.getElementById('eventForm'); form.hidden = false;
+    const form = document.getElementById('eventForm');
+    document.getElementById('eventFormModal').classList.add('active');
     document.getElementById('eventFormTitle').textContent = event ? 'Editar evento' : 'Nuevo evento';
     document.getElementById('eventTitle').value = event?.title || '';
     document.getElementById('eventDescription').value = event?.description || '';
-    document.getElementById('eventStart').value = event?.start_time || '';
-    document.getElementById('eventEnd').value = event?.end_time || '';
-    document.getElementById('eventNotificationTime').value = event?.notification_time || '08:00';
+    setNotificationTime(event?.notification_time || '08:00');
     document.getElementById('eventAllDay').checked = !!event?.all_day;
     document.getElementById('eventNotify').checked = event?.notification_enabled !== false;
-    updateTimeReadouts();
     document.getElementById('eventTitle').focus();
   }
-  function closeEventForm() { document.getElementById('eventForm').hidden = true; editingId = null; }
+  function closeEventForm() { document.getElementById('eventFormModal').classList.remove('active'); editingId = null; }
   async function submitEvent(e) {
     e.preventDefault();
-    const item = { id: editingId || crypto.randomUUID(), profile_id: activeProfile, date: selectedDate, title: document.getElementById('eventTitle').value.trim(), description: document.getElementById('eventDescription').value.trim(), start_time: document.getElementById('eventStart').value || null, end_time: document.getElementById('eventEnd').value || null, all_day: document.getElementById('eventAllDay').checked, notification_enabled: document.getElementById('eventNotify').checked, notification_time: document.getElementById('eventNotificationTime').value || '08:00', updated_at: new Date().toISOString() };
+    const item = { id: editingId || crypto.randomUUID(), profile_id: activeProfile, date: selectedDate, title: document.getElementById('eventTitle').value.trim(), description: document.getElementById('eventDescription').value.trim(), start_time: null, end_time: null, all_day: document.getElementById('eventAllDay').checked, notification_enabled: document.getElementById('eventNotify').checked, notification_time: getNotificationTime(), updated_at: new Date().toISOString() };
     if (!item.title) return;
     try { await saveEvent(item); closeEventForm(); renderEventList(); } catch (error) { showStatus(`No se pudo guardar en la nube: ${error.message}`); }
   }
-  function updateTimeReadouts() {
-    document.getElementById('eventStartDisplay').textContent = displayTime(document.getElementById('eventStart').value);
-    document.getElementById('eventEndDisplay').textContent = displayTime(document.getElementById('eventEnd').value);
+  function setNotificationTime(value) {
+    const [rawHour, rawMinute] = String(value || '08:00').slice(0, 5).split(':').map(Number);
+    const period = rawHour >= 12 ? 'pm' : 'am';
+    const hour = rawHour % 12 || 12;
+    document.getElementById('notificationHour').value = String(hour);
+    document.getElementById('notificationMinute').value = String(Number.isFinite(rawMinute) ? String(rawMinute).padStart(2, '0') : '00');
+    document.getElementById('notificationPeriod').value = period;
+  }
+  function getNotificationTime() {
+    let hour = Number(document.getElementById('notificationHour').value) % 12;
+    if (document.getElementById('notificationPeriod').value === 'pm') hour += 12;
+    return `${String(hour).padStart(2, '0')}:${document.getElementById('notificationMinute').value}`;
   }
   async function enableNotifications() {
     if (!('Notification' in window) || !('serviceWorker' in navigator)) return showStatus('Este navegador no admite notificaciones para esta aplicación.');
     const permission = await Notification.requestPermission();
     if (permission === 'granted') {
-      const registration = await navigator.serviceWorker.register('service-worker.js?v=20260903');
+      const registration = await navigator.serviceWorker.register('service-worker.js?v=20260907');
       if (!window.SUPABASE_CONFIG?.vapidPublicKey) return showStatus('Falta configurar la clave pública VAPID.');
       const subscription = await registration.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: urlBase64ToUint8Array(window.SUPABASE_CONFIG.vapidPublicKey) });
       if (!cloud) await loadEvents();
@@ -132,12 +139,11 @@
   function urlBase64ToUint8Array(value) { const padding = '='.repeat((4 - value.length % 4) % 4); const raw = atob((value + padding).replace(/-/g, '+').replace(/_/g, '/')); return Uint8Array.from([...raw].map(c => c.charCodeAt(0))); }
   function showStatus(message) { if (window.showStatus) window.showStatus(message); else alert(message); }
   function start() {
+    window.closeEventForm = closeEventForm;
     const select = document.getElementById('profileSelect'); select.value = activeProfile; select.onchange = async () => { activeProfile = select.value; localStorage.setItem(PROFILE_KEY, activeProfile); renderCalendar(); if (window.refreshWeather) await window.refreshWeather(); await loadEvents(); };
     document.getElementById('addEventButton').onclick = () => openEventForm();
     document.getElementById('cancelEventButton').onclick = closeEventForm;
     document.getElementById('eventForm').onsubmit = submitEvent;
-    document.getElementById('eventStart').addEventListener('input', updateTimeReadouts);
-    document.getElementById('eventEnd').addEventListener('input', updateTimeReadouts);
     document.getElementById('notifyButton').onclick = enableNotifications;
     const originalShow = window.showDetails;
     window.showDetails = async (date, day) => { selectedDate = date; originalShow(date, day); renderEventList(); };
