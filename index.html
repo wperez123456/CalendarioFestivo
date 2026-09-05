@@ -3,11 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Calendario/Clima</title>
+    <title>Eventos</title>
 
+    <link rel="icon" type="image/svg+xml" href="eventos-icon.svg">
     <link rel="icon" type="image/png" sizes="32x32" href="image/icono-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="image/icono-16x16.png">
-    <link rel="icon" type="image/png" sizes="192x192" href="image/icono-192x192.png">
     <link rel="apple-touch-icon" sizes="180x180" href="image/icono-180x180.png">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#ffffff">
@@ -90,22 +89,24 @@
         </div>
         <div id="eventList" class="event-list" aria-live="polite"></div>
 
-        <form id="eventForm" class="event-form" hidden>
+    </div>
+</div>
+
+<div id="eventFormModal" class="modal event-form-modal" onclick="if(event.target === this) closeEventForm()">
+    <div class="modal-content">
+        <button type="button" class="modal-close" onclick="closeEventForm()" aria-label="Cerrar formulario">×</button>
+        <form id="eventForm" class="event-form">
             <h3 id="eventFormTitle">Nuevo evento</h3>
             <label>Título <input id="eventTitle" required maxlength="100" autocomplete="off"></label>
             <label>Descripción <textarea id="eventDescription" maxlength="500"></textarea></label>
-            <div class="form-row">
-                <label>Inicio <input id="eventStart" type="time"></label>
-                <label>Fin <input id="eventEnd" type="time"></label>
-            </div>
-            <div class="time-readouts" aria-live="polite">
-                <span>Inicio: <strong id="eventStartDisplay">Sin hora</strong></span>
-                <span>Fin: <strong id="eventEndDisplay">Sin hora</strong></span>
-            </div>
             <label class="checkbox-label"><input id="eventAllDay" type="checkbox"> Todo el día</label>
             <label class="checkbox-label"><input id="eventNotify" type="checkbox" checked> Recibir notificación</label>
             <label>Hora del aviso
-                <input id="eventNotificationTime" type="time" value="08:00" aria-describedby="notificationHelp">
+                <span class="notification-time-controls" aria-label="Hora del aviso">
+                    <select id="notificationHour" aria-label="Hora"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8" selected>8</option><option value="9">9</option><option value="10">10</option><option value="11">11</option><option value="12">12</option></select>
+                    <select id="notificationMinute" aria-label="Minutos"><option value="00" selected>00</option><option value="05">05</option><option value="10">10</option><option value="15">15</option><option value="20">20</option><option value="25">25</option><option value="30">30</option><option value="35">35</option><option value="40">40</option><option value="45">45</option><option value="50">50</option><option value="55">55</option></select>
+                    <select id="notificationPeriod" aria-label="Periodo"><option value="am" selected>a. m.</option><option value="pm">p. m.</option></select>
+                </span>
                 <small id="notificationHelp" class="field-help">Por defecto 08:00. El aviso se entrega durante 10 minutos.</small>
             </label>
             <div class="form-actions">
@@ -131,9 +132,9 @@
     </div>
 </div>
 
-<script src="script.js?v=20260906"></script>
+<script src="script.js?v=20260907"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="supabase-config.js?v=20260906"></script>
-<script src="calendar-app.js?v=20260906"></script>
+<script src="supabase-config.js?v=20260907"></script>
+<script src="calendar-app.js?v=20260907"></script>
 </body>
 </html>

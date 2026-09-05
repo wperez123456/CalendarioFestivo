@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">Eventos</title>
+  <desc id="desc">Icono de calendario para la aplicación Eventos</desc>
+  <rect width="512" height="512" rx="112" fill="#08a6b8"/>
+  <rect x="82" y="112" width="348" height="320" rx="34" fill="#fff"/>
+  <rect x="82" y="112" width="348" height="92" rx="34" fill="#087f8c"/>
+  <rect x="82" y="170" width="348" height="34" fill="#087f8c"/>
+  <rect x="145" y="70" width="34" height="104" rx="17" fill="#fff"/>
+  <rect x="333" y="70" width="34" height="104" rx="17" fill="#fff"/>
+  <circle cx="157" cy="266" r="18" fill="#42a5f5"/>
+  <circle cx="256" cy="266" r="18" fill="#42a5f5"/>
+  <circle cx="355" cy="266" r="18" fill="#42a5f5"/>
+  <circle cx="157" cy="350" r="18" fill="#42a5f5"/>
+  <circle cx="256" cy="350" r="18" fill="#42a5f5"/>
+  <path d="m315 340 24 24 48-56" fill="none" stroke="#e94b5f" stroke-linecap="round" stroke-linejoin="round" stroke-width="22"/>
+</svg>
