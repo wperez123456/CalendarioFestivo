@@ -19,7 +19,7 @@
   async function loadEvents() {
     if (configuredCloud()) {
       cloud ||= window.supabase.createClient(window.SUPABASE_CONFIG.url, window.SUPABASE_CONFIG.anonKey);
-      const { data, error } = await cloud.from('events').select('*').order('date').order('start_time');
+      const { data, error } = await cloud.from('events').select('*').order('date').order('event_time', { ascending: true, nullsFirst: false });
       if (!error && data) events = data;
       else if (error) console.warn('No se pudieron cargar eventos remotos:', error.message);
     }
@@ -43,7 +43,15 @@
     decorateCalendar();
     renderWeeklySummary();
   }
-  function profileEvents(date) { return events.filter(e => e.profile_id === activeProfile && e.date === date).sort((a,b) => (a.start_time || '').localeCompare(b.start_time || '')); }
+  function eventTime(event) { return event.event_time || event.start_time || ''; }
+  function compareEventTime(a, b) {
+    const aTime = eventTime(a); const bTime = eventTime(b);
+    if (!aTime && !bTime) return String(a.title || '').localeCompare(String(b.title || ''), 'es');
+    if (!aTime) return 1;
+    if (!bTime) return -1;
+    return aTime.localeCompare(bTime);
+  }
+  function profileEvents(date) { return events.filter(e => e.profile_id === activeProfile && e.date === date).sort(compareEventTime); }
   function decorateCalendar() {
     document.querySelectorAll('.day-cell').forEach(cell => {
       const weather = cell.querySelector('.cell-weather'); const date = weather?.id?.slice(2);
@@ -59,7 +67,7 @@
     list.innerHTML = items.length ? `<h3>Eventos de ${profiles[activeProfile]}</h3>` : '<p class="no-events">No hay eventos para este día.</p>';
     items.forEach(event => {
       const row = document.createElement('div'); row.className = 'event-row';
-      row.innerHTML = `<div><strong>${escapeHtml(event.title)}</strong><small>${event.all_day ? 'Todo el día' : `${event.start_time || ''}${event.end_time ? ` – ${event.end_time}` : ''}`}</small>${event.description ? `<p>${escapeHtml(event.description)}</p>` : ''}</div>`;
+      row.innerHTML = `<div><strong>${escapeHtml(event.title)}</strong><small>${event.all_day ? 'Todo el día' : `Hora del evento: ${displayTime(eventTime(event))}`}</small>${event.description ? `<p>${escapeHtml(event.description)}</p>` : ''}</div>`;
       const edit = document.createElement('button'); edit.type = 'button'; edit.textContent = 'Editar'; edit.onclick = () => openEventForm(event);
       const del = document.createElement('button'); del.type = 'button'; del.textContent = 'Borrar'; del.onclick = async () => { if (confirm('¿Borrar este evento?')) { await removeEvent(event.id); renderEventList(); } };
       row.append(edit, del); list.appendChild(row);
@@ -80,9 +88,9 @@
     const monday = new Date(now); const day = monday.getDay() || 7;
     monday.setHours(0, 0, 0, 0); monday.setDate(monday.getDate() - day + 1);
     const sunday = new Date(monday); sunday.setDate(sunday.getDate() + 6); sunday.setHours(23, 59, 59, 999);
-    const items = events.filter(event => event.profile_id === activeProfile && event.date >= toDateKey(monday) && event.date <= toDateKey(sunday)).sort((a, b) => `${a.date}${a.start_time || ''}`.localeCompare(`${b.date}${b.start_time || ''}`));
+    const items = events.filter(event => event.profile_id === activeProfile && event.date >= toDateKey(monday) && event.date <= toDateKey(sunday)).sort((a, b) => a.date.localeCompare(b.date) || compareEventTime(a, b));
     if (profileLabel) profileLabel.textContent = profiles[activeProfile];
-    list.innerHTML = items.length ? items.map(event => `<div class="weekly-event"><strong>${formatShortDate(event.date)}</strong><span>${escapeHtml(event.title)}</span></div>`).join('') : '<p class="weekly-empty">No hay eventos programados para esta semana.</p>';
+    list.innerHTML = items.length ? items.map(event => `<div class="weekly-event"><strong>${formatShortDate(event.date)}</strong><span>${escapeHtml(event.title)}</span><em>${event.all_day ? 'Todo el día' : displayTime(eventTime(event))}</em></div>`).join('') : '<p class="weekly-empty">No hay eventos programados para esta semana.</p>';
   }
   function toDateKey(date) { return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`; }
   function formatShortDate(dateKey) { return new Intl.DateTimeFormat('es-ES', { weekday: 'short', day: 'numeric', month: 'short' }).format(new Date(`${dateKey}T12:00:00`)); }
@@ -93,36 +101,47 @@
     document.getElementById('eventFormTitle').textContent = event ? 'Editar evento' : 'Nuevo evento';
     document.getElementById('eventTitle').value = event?.title || '';
     document.getElementById('eventDescription').value = event?.description || '';
+    setEventTime(event?.event_time || event?.start_time || '08:00');
     setNotificationTime(event?.notification_time || '08:00');
     document.getElementById('eventAllDay').checked = !!event?.all_day;
     document.getElementById('eventNotify').checked = event?.notification_enabled !== false;
+    updateEventTimeAvailability();
     document.getElementById('eventTitle').focus();
   }
   function closeEventForm() { document.getElementById('eventFormModal').classList.remove('active'); editingId = null; }
   async function submitEvent(e) {
     e.preventDefault();
-    const item = { id: editingId || crypto.randomUUID(), profile_id: activeProfile, date: selectedDate, title: document.getElementById('eventTitle').value.trim(), description: document.getElementById('eventDescription').value.trim(), start_time: null, end_time: null, all_day: document.getElementById('eventAllDay').checked, notification_enabled: document.getElementById('eventNotify').checked, notification_time: getNotificationTime(), updated_at: new Date().toISOString() };
+    const allDay = document.getElementById('eventAllDay').checked;
+    const item = { id: editingId || crypto.randomUUID(), profile_id: activeProfile, date: selectedDate, title: document.getElementById('eventTitle').value.trim(), description: document.getElementById('eventDescription').value.trim(), event_time: allDay ? null : getEventTime(), start_time: null, end_time: null, all_day: allDay, notification_enabled: document.getElementById('eventNotify').checked, notification_time: getNotificationTime(), updated_at: new Date().toISOString() };
     if (!item.title) return;
     try { await saveEvent(item); closeEventForm(); renderEventList(); } catch (error) { showStatus(`No se pudo guardar en la nube: ${error.message}`); }
   }
-  function setNotificationTime(value) {
+  function setTimeControls(value, prefix) {
     const [rawHour, rawMinute] = String(value || '08:00').slice(0, 5).split(':').map(Number);
     const period = rawHour >= 12 ? 'pm' : 'am';
     const hour = rawHour % 12 || 12;
-    document.getElementById('notificationHour').value = String(hour);
-    document.getElementById('notificationMinute').value = String(Number.isFinite(rawMinute) ? String(rawMinute).padStart(2, '0') : '00');
-    document.getElementById('notificationPeriod').value = period;
+    document.getElementById(`${prefix}Hour`).value = String(hour);
+    document.getElementById(`${prefix}Minute`).value = String(Number.isFinite(rawMinute) ? String(rawMinute).padStart(2, '0') : '00');
+    document.getElementById(`${prefix}Period`).value = period;
   }
-  function getNotificationTime() {
-    let hour = Number(document.getElementById('notificationHour').value) % 12;
-    if (document.getElementById('notificationPeriod').value === 'pm') hour += 12;
-    return `${String(hour).padStart(2, '0')}:${document.getElementById('notificationMinute').value}`;
+  function getTimeControls(prefix) {
+    let hour = Number(document.getElementById(`${prefix}Hour`).value) % 12;
+    if (document.getElementById(`${prefix}Period`).value === 'pm') hour += 12;
+    return `${String(hour).padStart(2, '0')}:${document.getElementById(`${prefix}Minute`).value}`;
+  }
+  function setEventTime(value) { setTimeControls(value, 'event'); }
+  function getEventTime() { return getTimeControls('event'); }
+  function setNotificationTime(value) { setTimeControls(value, 'notification'); }
+  function getNotificationTime() { return getTimeControls('notification'); }
+  function updateEventTimeAvailability() {
+    const disabled = document.getElementById('eventAllDay').checked;
+    ['eventHour', 'eventMinute', 'eventPeriod'].forEach(id => { document.getElementById(id).disabled = disabled; });
   }
   async function enableNotifications() {
     if (!('Notification' in window) || !('serviceWorker' in navigator)) return showStatus('Este navegador no admite notificaciones para esta aplicación.');
     const permission = await Notification.requestPermission();
     if (permission === 'granted') {
-      const registration = await navigator.serviceWorker.register('service-worker.js?v=20260907');
+      const registration = await navigator.serviceWorker.register('service-worker.js?v=20260908');
       if (!window.SUPABASE_CONFIG?.vapidPublicKey) return showStatus('Falta configurar la clave pública VAPID.');
       const subscription = await registration.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: urlBase64ToUint8Array(window.SUPABASE_CONFIG.vapidPublicKey) });
       if (!cloud) await loadEvents();
@@ -144,6 +163,7 @@
     document.getElementById('addEventButton').onclick = () => openEventForm();
     document.getElementById('cancelEventButton').onclick = closeEventForm;
     document.getElementById('eventForm').onsubmit = submitEvent;
+    document.getElementById('eventAllDay').onchange = updateEventTimeAvailability;
     document.getElementById('notifyButton').onclick = enableNotifications;
     const originalShow = window.showDetails;
     window.showDetails = async (date, day) => { selectedDate = date; originalShow(date, day); renderEventList(); };
@@ -155,3 +175,4 @@
   }
   window.addEventListener('load', start, { once: true });
 })();
+

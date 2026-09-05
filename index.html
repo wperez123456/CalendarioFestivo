@@ -100,6 +100,14 @@
             <label>Título <input id="eventTitle" required maxlength="100" autocomplete="off"></label>
             <label>Descripción <textarea id="eventDescription" maxlength="500"></textarea></label>
             <label class="checkbox-label"><input id="eventAllDay" type="checkbox"> Todo el día</label>
+            <label>Hora del evento
+                <span class="notification-time-controls" aria-label="Hora del evento">
+                    <select id="eventHour" aria-label="Hora del evento"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8" selected>8</option><option value="9">9</option><option value="10">10</option><option value="11">11</option><option value="12">12</option></select>
+                    <select id="eventMinute" aria-label="Minutos del evento"><option value="00" selected>00</option><option value="05">05</option><option value="10">10</option><option value="15">15</option><option value="20">20</option><option value="25">25</option><option value="30">30</option><option value="35">35</option><option value="40">40</option><option value="45">45</option><option value="50">50</option><option value="55">55</option></select>
+                    <select id="eventPeriod" aria-label="Periodo del evento"><option value="am" selected>a. m.</option><option value="pm">p. m.</option></select>
+                </span>
+                <small class="field-help">Hora de la cita o actividad. Para eventos de todo el día no se guarda hora.</small>
+            </label>
             <label class="checkbox-label"><input id="eventNotify" type="checkbox" checked> Recibir notificación</label>
             <label>Hora del aviso
                 <span class="notification-time-controls" aria-label="Hora del aviso">
@@ -132,9 +140,10 @@
     </div>
 </div>
 
-<script src="script.js?v=20260907"></script>
+<script src="script.js?v=20260908"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="supabase-config.js?v=20260907"></script>
-<script src="calendar-app.js?v=20260907"></script>
+<script src="supabase-config.js?v=20260908"></script>
+<script src="calendar-app.js?v=20260908"></script>
 </body>
 </html>
+
