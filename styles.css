@@ -268,6 +268,7 @@ header {
 .weekly-summary-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px 12px; margin-top: 8px; }
 .weekly-event { min-width: 0; color: var(--text-main); font-size: 12px; }
 .weekly-event strong { display: block; color: var(--accent); font-size: 10px; text-transform: uppercase; }
+.weekly-event em { display: block; color: var(--text-muted); font-size: 11px; font-style: normal; }
 .weekly-empty { margin: 0; color: var(--text-muted); font-size: 12px; }
 
 /* Colores DEFINIDOS por el usuario */
@@ -340,3 +341,4 @@ header {
 .anim-rain-heavy { animation: heavy-rain 0.5s infinite alternate; }
 @keyframes storm-flash { 0%, 100% {opacity: 1;} 50% {opacity: 0.3;} }
 .anim-storm { animation: storm-flash 0.1s infinite alternate; }
+
